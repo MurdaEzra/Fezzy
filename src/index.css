@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --background: 20 100% 98%; /* #FFF8F5 */
+    --foreground: 222.2 47.4% 11.2%;
+    --muted: 30 30% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --border: 30 20% 90%;
+    --input: 30 20% 90%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --primary: 25 95% 53%; /* #F97316 - Orange */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 71% 45%; /* #22C55E - Green */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 45 93% 47%; /* #EAB308 - Yellow/Amber */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 25 95% 53%;
+    --radius: 0.5rem;
+  }
+  :root[class~="dark"] {
+    --background: 0 0% 5%; /* #0C0C0C */
+    --foreground: 213 31% 91%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 210 40% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 215 20.2% 65.1%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --card: 0 0% 8%;
+    --card-foreground: 213 31% 91%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 71% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 25 95% 53%;
+    --radius: 0.5rem;
+  }
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
