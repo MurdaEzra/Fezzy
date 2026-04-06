@@ -25,14 +25,21 @@ import {
   Moon } from
 'lucide-react';
 import { motion } from 'framer-motion';
-import type { PageType } from '../App';
+import type { PageType, SessionUser } from '../App';
 interface LandingPageProps {
   navigate: (page: PageType) => void;
+  sessionUser?: SessionUser | null;
 }
-export function LandingPage({ navigate }: LandingPageProps) {
+export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isDark, setIsDark] = useState(false);
+  const workspacePage =
+  sessionUser?.role === 'root-admin' ?
+  'root-admin' :
+  sessionUser?.role === 'admin' ?
+  'admin' :
+  'dashboard';
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
@@ -105,33 +112,33 @@ export function LandingPage({ navigate }: LandingPageProps) {
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary z-50 hidden md:block"></div>
 
       {/* Navbar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => navigate('landing')}>
-
-            <span className="text-2xl font-extrabold tracking-tight text-secondary">
-              FEZZY
-            </span>
+              <img
+              src="https://res.cloudinary.com/dgfmhyebp/image/upload/v1775503932/Untitled_design_6_-Photoroom_qi5ng3.png"
+              alt="Lashawn Driving & Computer College"
+              className="h-16 md:h-36 lg:h-56 w-auto object-contain" />
           </div>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <a
-              href="#features"
+              href="features"
               className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
 
               Features
             </a>
             <a
-              href="#pricing"
+              href="pricing"
               className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
 
               Pricing
             </a>
             <a
-              href="#testimonials"
+              href="testimonials"
               className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
 
               Testimonials
@@ -148,12 +155,19 @@ export function LandingPage({ navigate }: LandingPageProps) {
                 <Moon className="h-5 w-5" />
                 }
               </button>
-              <Button variant="ghost" onClick={() => navigate('login')}>
-                Log in
-              </Button>
-              <Button onClick={() => navigate('signup')}>
-                Start Free Trial
-              </Button>
+              {sessionUser ?
+              <Button variant="ghost" onClick={() => navigate(workspacePage)}>
+                  Open Workspace
+                </Button> :
+              <>
+                  <Button variant="ghost" onClick={() => navigate('login')}>
+                    Log in
+                  </Button>
+                  <Button onClick={() => navigate('signup')}>
+                    Start Free Trial
+                  </Button>
+                </>
+              }
             </div>
           </nav>
 
@@ -186,37 +200,48 @@ export function LandingPage({ navigate }: LandingPageProps) {
         {isMobileMenuOpen &&
         <div className="md:hidden border-t border-border bg-background p-4 flex flex-col gap-4">
             <a
-            href="#features"
+            href="features"
             className="text-sm font-semibold p-2"
             onClick={() => setIsMobileMenuOpen(false)}>
 
               Features
             </a>
             <a
-            href="#pricing"
+            href="pricing"
             className="text-sm font-semibold p-2"
             onClick={() => setIsMobileMenuOpen(false)}>
 
               Pricing
             </a>
             <a
-            href="#testimonials"
+            href="testimonials"
             className="text-sm font-semibold p-2"
             onClick={() => setIsMobileMenuOpen(false)}>
 
               Testimonials
             </a>
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
+              {sessionUser ?
               <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('login')}>
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate(workspacePage)}>
 
-                Log in
-              </Button>
-              <Button className="w-full" onClick={() => navigate('signup')}>
-                Start Free Trial
-              </Button>
+                  Open Workspace
+                </Button> :
+              <>
+                  <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('login')}>
+
+                    Log in
+                  </Button>
+                  <Button className="w-full" onClick={() => navigate('signup')}>
+                    Start Free Trial
+                  </Button>
+                </>
+              }
             </div>
           </div>
         }
@@ -226,156 +251,157 @@ export function LandingPage({ navigate }: LandingPageProps) {
         {/* Hero Section */}
         <section className="py-16 md:py-24 px-4 overflow-hidden relative">
           <div className="container mx-auto max-w-5xl">
-            <div className="flex flex-col items-center text-center md:items-start md:text-left max-w-3xl">
+            <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.95fr)]">
+              <div className="flex flex-col items-center text-center md:items-start md:text-left">
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: 20
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0
+                  }}
+                  transition={{
+                    duration: 0.5
+                  }}
+                  className="inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-8">
+
+                  <Store className="h-4 w-4 mr-2" />
+                  Built for African Entrepreneurs
+                </motion.div>
+
+                <motion.h1
+                  initial={{
+                    opacity: 0,
+                    y: 20
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.1
+                  }}
+                  className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground mb-6 leading-[1.1]">
+
+                  Build Your{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                    Online
+                  </span>
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-secondary">
+                    Store
+                  </span>{' '}
+                  in Minutes
+                </motion.h1>
+
+                <motion.p
+                  initial={{
+                    opacity: 0,
+                    y: 20
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.2
+                  }}
+                  className="text-xl text-muted-foreground mb-10 max-w-2xl leading-relaxed">
+
+                  Launch a beautiful, mobile-first e-commerce store with M-Pesa
+                  payments, custom domains, and everything you need to sell online
+                  across Africa.
+                </motion.p>
+
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: 20
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.3
+                  }}
+                  className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto"
+                    onClick={() => navigate('signup')}>
+
+                    Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto">
+
+                    Watch Demo
+                  </Button>
+                </motion.div>
+
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: 20
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.4
+                  }}
+                  className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-10 text-sm font-medium text-muted-foreground">
+
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-secondary" />
+                    Mobile-first
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-accent" />
+                    No coding required
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-accent" />
+                    Free plan
+                  </div>
+                </motion.div>
+              </div>
+
               <motion.div
                 initial={{
                   opacity: 0,
-                  y: 20
+                  y: 40
                 }}
                 animate={{
                   opacity: 1,
                   y: 0
                 }}
                 transition={{
-                  duration: 0.5
+                  duration: 0.7,
+                  delay: 0.5
                 }}
-                className="inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-8">
+                className="relative mx-auto w-full max-w-xl lg:max-w-none">
 
-                <Store className="h-4 w-4 mr-2" />
-                Built for African Entrepreneurs
-              </motion.div>
+                <div className="overflow-hidden">
+                  <img
+                    src="https://res.cloudinary.com/dgfmhyebp/image/upload/v1775506123/Copy_of_Untitled_Design_1_-Photoroom_wy3lgh.png"
+                    alt="FEZZY Platform Dashboard"
+                    className="w-full h-auto object-cover" />
 
-              <motion.h1
-                initial={{
-                  opacity: 0,
-                  y: 20
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.1
-                }}
-                className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground mb-6 leading-[1.1]">
-
-                Build Your{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                  Online
-                </span>
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-secondary">
-                  Store
-                </span>{' '}
-                in Minutes
-              </motion.h1>
-
-              <motion.p
-                initial={{
-                  opacity: 0,
-                  y: 20
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.2
-                }}
-                className="text-xl text-muted-foreground mb-10 max-w-2xl leading-relaxed">
-
-                Launch a beautiful, mobile-first e-commerce store with M-Pesa
-                payments, custom domains, and everything you need to sell online
-                across Africa.
-              </motion.p>
-
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 20
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.3
-                }}
-                className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto"
-                  onClick={() => navigate('signup')}>
-
-                  Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto">
-
-                  Watch Demo
-                </Button>
-              </motion.div>
-
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  y: 20
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.4
-                }}
-                className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-10 text-sm font-medium text-muted-foreground">
-
-                <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-secondary" />
-                  Mobile-first
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-accent" />
-                  No coding required
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-accent" />
-                  Free plan
                 </div>
               </motion.div>
             </div>
-
-            {/* Hero Image */}
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 40
-              }}
-              animate={{
-                opacity: 1,
-                y: 0
-              }}
-              transition={{
-                duration: 0.7,
-                delay: 0.5
-              }}
-              className="mt-16 relative mx-auto">
-
-              <div className="rounded-3xl overflow-hidden shadow-2xl border border-border/50">
-                <img
-                  src="/image.png"
-                  alt="FEZZY Platform Dashboard"
-                  className="w-full h-auto object-cover" />
-
-              </div>
-            </motion.div>
           </div>
         </section>
 

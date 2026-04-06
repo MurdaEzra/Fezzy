@@ -1,504 +1,460 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  ArrowLeft,
+  CheckCircle2,
+  CreditCard,
+  Headset,
+  LoaderCircle,
+  Search,
+  ShieldAlert,
+  Store,
+  Users,
+  XCircle
+} from 'lucide-react';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
-import {
-  Store,
-  Users,
-  CreditCard,
-  Activity,
-  Search,
-  MoreHorizontal,
-  ShieldAlert,
-  CheckCircle2,
-  XCircle,
-  ArrowLeft } from
-'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer } from
-'recharts';
-import type { PageType } from '../App';
+import type { PageType, SessionUser } from '../App';
+
 interface SuperAdminPageProps {
   navigate: (page: PageType) => void;
+  currentUser: SessionUser;
+  onLogout: () => void;
 }
-export function SuperAdminPage({ navigate }: SuperAdminPageProps) {
-  const [activeTab, setActiveTab] = useState('stores');
-  const platformStats = [
-  {
-    title: 'Total Stores',
-    value: '156',
-    icon: <Store className="h-4 w-4 text-muted-foreground" />
-  },
-  {
-    title: 'Active Stores',
-    value: '89',
-    icon: <Activity className="h-4 w-4 text-emerald-500" />
-  },
-  {
-    title: 'Total Revenue',
-    value: 'KES 2.4M',
-    icon: <CreditCard className="h-4 w-4 text-muted-foreground" />
-  },
-  {
-    title: 'MRR',
-    value: 'KES 890K',
-    icon: <Users className="h-4 w-4 text-primary" />
-  }];
 
-  const mockStores = [
+const stores = [
   {
     id: 1,
-    name: 'Mama Mboga Store',
-    owner: 'James K.',
-    plan: 'Free',
-    products: 15,
-    revenue: 'KES 125K',
-    status: 'Active',
-    date: 'Oct 12, 2023'
+    name: 'Mama Mboga Market',
+    owner: 'James Kariuki',
+    plan: 'Growth',
+    products: 128,
+    revenue: 'KES 452K',
+    health: 'Healthy',
+    issue: 'None',
+    created: '12 Jan 2026'
   },
   {
     id: 2,
-    name: 'Shiku Styles',
-    owner: 'Wanjiku N.',
-    plan: 'Pro',
-    products: 450,
-    revenue: 'KES 850K',
-    status: 'Active',
-    date: 'Sep 05, 2023'
+    name: 'Amina Beauty House',
+    owner: 'Amina Yusuf',
+    plan: 'Starter',
+    products: 64,
+    revenue: 'KES 188K',
+    health: 'Needs Review',
+    issue: 'Chargeback spike',
+    created: '27 Feb 2026'
   },
   {
     id: 3,
     name: 'Lake View Electronics',
-    owner: 'Ochieng O.',
-    plan: 'Basic',
-    products: 120,
-    revenue: 'KES 420K',
-    status: 'Active',
-    date: 'Oct 01, 2023'
+    owner: 'Ochieng Otieno',
+    plan: 'Scale',
+    products: 512,
+    revenue: 'KES 1.2M',
+    health: 'Healthy',
+    issue: 'None',
+    created: '06 Dec 2025'
   },
   {
     id: 4,
-    name: 'Amina Beauty',
-    owner: 'Amina Y.',
-    plan: 'Basic',
-    products: 85,
-    revenue: 'KES 210K',
-    status: 'Active',
-    date: 'Aug 15, 2023'
-  },
-  {
-    id: 5,
     name: 'Nairobi Sneakers',
-    owner: 'Kevin M.',
-    plan: 'Free',
-    products: 20,
-    revenue: 'KES 45K',
-    status: 'Suspended',
-    date: 'Oct 20, 2023'
-  },
-  {
-    id: 6,
-    name: 'Organic Honey KE',
-    owner: 'Sarah K.',
-    plan: 'Pro',
-    products: 12,
-    revenue: 'KES 310K',
-    status: 'Active',
-    date: 'Jul 10, 2023'
-  },
-  {
-    id: 7,
-    name: 'Maasai Crafts',
-    owner: 'Daniel L.',
-    plan: 'Free',
-    products: 8,
-    revenue: 'KES 12K',
-    status: 'Active',
-    date: 'Oct 25, 2023'
-  },
-  {
-    id: 8,
-    name: 'Tech Gadgets',
-    owner: 'Peter W.',
-    plan: 'Basic',
-    products: 195,
+    owner: 'Kevin Mwangi',
+    plan: 'Growth',
+    products: 206,
     revenue: 'KES 0',
-    status: 'Suspended',
-    date: 'Sep 28, 2023'
-  }];
+    health: 'Suspended',
+    issue: 'Failed KYC refresh',
+    created: '05 Mar 2026'
+  }
+];
 
-  const supportTickets = [
-  {
-    id: '#TK-092',
-    store: 'Amina Beauty',
-    subject: 'Custom domain SSL issue',
-    status: 'Open',
-    priority: 'High'
-  },
-  {
-    id: '#TK-091',
-    store: 'Tech Gadgets',
-    subject: 'Account suspension appeal',
-    status: 'Open',
-    priority: 'High'
-  },
-  {
-    id: '#TK-090',
-    store: 'Mama Mboga Store',
-    subject: 'How to add variants?',
-    status: 'Resolved',
-    priority: 'Low'
-  },
-  {
-    id: '#TK-089',
-    store: 'Shiku Styles',
-    subject: 'M-Pesa Daraja API error',
-    status: 'In Progress',
-    priority: 'Critical'
-  },
-  {
-    id: '#TK-088',
-    store: 'Maasai Crafts',
-    subject: 'Billing question',
-    status: 'Resolved',
-    priority: 'Medium'
-  }];
+const revenueData = [
+  { name: 'Nov', revenue: 820000 },
+  { name: 'Dec', revenue: 960000 },
+  { name: 'Jan', revenue: 1090000 },
+  { name: 'Feb', revenue: 1210000 },
+  { name: 'Mar', revenue: 1320000 },
+  { name: 'Apr', revenue: 1480000 }
+];
 
-  const revenueData = [
+const supportQueue = [
   {
-    name: 'May',
-    revenue: 450000
+    ticket: '#OPS-114',
+    merchant: 'Amina Beauty House',
+    issue: 'Settlement delay after M-Pesa retries',
+    priority: 'High',
+    owner: 'Risk Team'
   },
   {
-    name: 'Jun',
-    revenue: 520000
+    ticket: '#OPS-109',
+    merchant: 'Nairobi Sneakers',
+    issue: 'KYC document mismatch',
+    priority: 'Critical',
+    owner: 'Compliance'
   },
   {
-    name: 'Jul',
-    revenue: 610000
-  },
-  {
-    name: 'Aug',
-    revenue: 750000
-  },
-  {
-    name: 'Sep',
-    revenue: 820000
-  },
-  {
-    name: 'Oct',
-    revenue: 890000
-  }];
+    ticket: '#OPS-101',
+    merchant: 'Lake View Electronics',
+    issue: 'Plan downgrade request',
+    priority: 'Medium',
+    owner: 'Billing'
+  }
+];
+
+export function SuperAdminPage({
+  navigate,
+  currentUser,
+  onLogout
+}: SuperAdminPageProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsLoading(false), 850);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const visibleStores = useMemo(
+    () =>
+      stores.filter((store) =>
+        `${store.name} ${store.owner} ${store.issue}`.
+          toLowerCase().
+          includes(searchTerm.toLowerCase())
+      ),
+    [searchTerm]
+  );
+
+  const userInitials = currentUser.name.
+    split(' ').
+    map((part) => part[0]).
+    join('').
+    slice(0, 2).
+    toUpperCase();
 
   return (
     <div className="min-h-screen bg-muted/20">
-      {/* Admin Header */}
-      <header className="bg-slate-900 text-slate-50 py-4 px-6 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950 px-6 py-4 text-slate-50">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
+            <div className="rounded-2xl bg-primary p-2 text-primary-foreground">
               <ShieldAlert className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight leading-none">
-                FEZZY Super Admin
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Platform Management Console
+              <h1 className="text-lg font-bold">FEZZY Admin Console</h1>
+              <p className="text-xs text-slate-400">
+                Store operations, billing, and merchant support
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-3">
+            {currentUser.role === 'root-admin' &&
             <Button
               variant="ghost"
-              className="text-slate-300 hover:text-white hover:bg-slate-800"
-              onClick={() => navigate('dashboard')}>
+              className="text-slate-300 hover:bg-slate-800 hover:text-white"
+              onClick={() => navigate('root-admin')}>
 
-              <ArrowLeft className="h-4 w-4 mr-2" /> Exit Admin
+                Open Root Admin
+              </Button>
+            }
+            <Button
+              variant="ghost"
+              className="text-slate-300 hover:bg-slate-800 hover:text-white"
+              onClick={() => navigate('landing')}>
+
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Exit
             </Button>
-            <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium">
-              AD
-            </div>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold">
+
+              {userInitials}
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Stats Row */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {platformStats.map((stat, i) =>
-          <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                {stat.icon}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  {stat.value}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      <main className="mx-auto max-w-7xl space-y-6 p-6">
+        <AnimatePresence mode="wait">
+          {isLoading ?
+          <motion.div
+            key="loading"
+            initial={{
+              opacity: 0
+            }}
+            animate={{
+              opacity: 1
+            }}
+            exit={{
+              opacity: 0
+            }}
+            className="space-y-6">
 
-        {/* Main Content Area */}
-        <Card>
-          <CardHeader className="border-b border-border pb-0">
-            <div className="flex space-x-6">
-              {['stores', 'revenue', 'support', 'plans'].map((tab) =>
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm font-medium capitalize border-b-2 transition-colors ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-
-                  {tab}
-                </button>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, index) =>
+              <div
+                key={index}
+                className="h-32 animate-pulse rounded-lg border border-border bg-card" />
               )}
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {/* Stores Tab */}
-            {activeTab === 'stores' &&
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="relative w-72">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                    placeholder="Search stores, owners..."
-                    className="pl-9" />
-
-                  </div>
-                  <Button variant="outline">Export List</Button>
-                </div>
-
-                <div className="overflow-x-auto border border-border rounded-lg">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">Store Name</th>
-                        <th className="px-4 py-3 font-medium">Owner</th>
-                        <th className="px-4 py-3 font-medium">Plan</th>
-                        <th className="px-4 py-3 font-medium">Products</th>
-                        <th className="px-4 py-3 font-medium">GMV</th>
-                        <th className="px-4 py-3 font-medium">Status</th>
-                        <th className="px-4 py-3 font-medium">Created</th>
-                        <th className="px-4 py-3 font-medium text-right">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {mockStores.map((store) =>
-                    <tr key={store.id} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 font-medium text-foreground">
-                            {store.name}
-                          </td>
-                          <td className="px-4 py-3">{store.owner}</td>
-                          <td className="px-4 py-3">
-                            <Badge
-                          variant={
-                          store.plan === 'Pro' ?
-                          'default' :
-                          store.plan === 'Basic' ?
-                          'secondary' :
-                          'outline'
-                          }>
-
-                              {store.plan}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">{store.products}</td>
-                          <td className="px-4 py-3 font-medium">
-                            {store.revenue}
-                          </td>
-                          <td className="px-4 py-3">
-                            {store.status === 'Active' ?
-                        <span className="flex items-center text-emerald-600 text-xs font-medium">
-                                <CheckCircle2 className="h-3 w-3 mr-1" /> Active
-                              </span> :
-
-                        <span className="flex items-center text-destructive text-xs font-medium">
-                                <XCircle className="h-3 w-3 mr-1" /> Suspended
-                              </span>
-                        }
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {store.date}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8">
-
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                    )}
-                    </tbody>
-                  </table>
-                </div>
               </div>
-            }
-
-            {/* Revenue Tab */}
-            {activeTab === 'revenue' &&
-            <div className="space-y-6">
-                <h3 className="text-lg font-medium text-foreground">
-                  Platform MRR Growth
-                </h3>
-                <div className="h-[400px] w-full border border-border rounded-lg p-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={revenueData}>
-                      <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="hsl(var(--border))" />
-
-                      <XAxis
-                      dataKey="name"
-                      stroke="hsl(var(--muted-foreground))" />
-
-                      <YAxis
-                      stroke="hsl(var(--muted-foreground))"
-                      tickFormatter={(val) => `K ${val / 1000}k`} />
-
-                      <Tooltip
-                      cursor={{
-                        fill: 'hsl(var(--muted))'
-                      }} />
-
-                      <Bar
-                      dataKey="revenue"
-                      fill="hsl(var(--primary))"
-                      radius={[4, 4, 0, 0]} />
-
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
+                <div className="h-[380px] animate-pulse rounded-lg border border-border bg-card" />
+                <div className="h-[380px] animate-pulse rounded-lg border border-border bg-card" />
               </div>
-            }
+              <div className="h-[380px] animate-pulse rounded-lg border border-border bg-card" />
+            </motion.div> :
+          <motion.div
+            key="loaded"
+            initial={{
+              opacity: 0,
+              y: 20
+            }}
+            animate={{
+              opacity: 1,
+              y: 0
+            }}
+            exit={{
+              opacity: 0
+            }}
+            transition={{
+              duration: 0.35
+            }}
+            className="space-y-6">
 
-            {/* Support Tab */}
-            {activeTab === 'support' &&
-            <div className="space-y-4">
-                <div className="overflow-x-auto border border-border rounded-lg">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">Ticket ID</th>
-                        <th className="px-4 py-3 font-medium">Store</th>
-                        <th className="px-4 py-3 font-medium">Subject</th>
-                        <th className="px-4 py-3 font-medium">Priority</th>
-                        <th className="px-4 py-3 font-medium">Status</th>
-                        <th className="px-4 py-3 font-medium text-right">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {supportTickets.map((ticket, i) =>
-                    <tr key={i} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 font-medium">{ticket.id}</td>
-                          <td className="px-4 py-3">{ticket.store}</td>
-                          <td className="px-4 py-3">{ticket.subject}</td>
-                          <td className="px-4 py-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                  title="Active Merchants"
+                  value="214"
+                  description="17 joined this month"
+                  icon={<Store className="h-4 w-4 text-primary" />} />
+                <StatCard
+                  title="Healthy Stores"
+                  value="189"
+                  description="88% passing daily checks"
+                  icon={<Activity className="h-4 w-4 text-emerald-500" />} />
+                <StatCard
+                  title="Monthly Platform GMV"
+                  value="KES 14.8M"
+                  description="Up 12.4% from March"
+                  icon={<CreditCard className="h-4 w-4 text-sky-500" />} />
+                <StatCard
+                  title="Open Cases"
+                  value="23"
+                  description="6 require escalation"
+                  icon={<Users className="h-4 w-4 text-amber-500" />} />
+              </div>
+
+              <div className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
+                <motion.div whileHover={{ y: -2 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Platform revenue trend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[320px] rounded-3xl border border-border bg-muted/30 p-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={revenueData}>
+                            <defs>
+                              <linearGradient id="opsRevenue" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+                            <Tooltip />
+                            <Area
+                              dataKey="revenue"
+                              type="monotone"
+                              stroke="hsl(var(--primary))"
+                              fill="url(#opsRevenue)"
+                              strokeWidth={3} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ y: -2 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Operations queue</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {supportQueue.map((ticket) =>
+                    <motion.div
+                      key={ticket.ticket}
+                      initial={{
+                        opacity: 0,
+                        y: 14
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0
+                      }}
+                      className="rounded-3xl border border-border bg-background p-4">
+
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <p className="font-semibold text-foreground">{ticket.ticket}</p>
                             <Badge
-                          variant="outline"
-                          className={
-                          ticket.priority === 'Critical' ?
-                          'border-red-200 text-red-700 bg-red-50' :
-                          ticket.priority === 'High' ?
-                          'border-orange-200 text-orange-700 bg-orange-50' :
-                          'border-blue-200 text-blue-700 bg-blue-50'
-                          }>
+                              variant={ticket.priority === 'Critical' ? 'destructive' : 'warning'}>
 
                               {ticket.priority}
                             </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge
-                          variant="secondary"
-                          className={
-                          ticket.status === 'Resolved' ?
-                          'bg-emerald-100 text-emerald-800' :
-                          ''
-                          }>
-
-                              {ticket.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <Button size="sm" variant="outline">
-                              View
-                            </Button>
-                          </td>
-                        </tr>
+                          </div>
+                          <p className="text-sm font-medium text-foreground">{ticket.merchant}</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">{ticket.issue}</p>
+                          <p className="mt-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                            Owner: {ticket.owner}
+                          </p>
+                        </motion.div>
                     )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            }
 
-            {/* Plans Tab */}
-            {activeTab === 'plans' &&
-            <div className="grid md:grid-cols-3 gap-6">
-                {['Free', 'Basic', 'Pro'].map((plan) =>
-              <Card key={plan} className="border-border">
-                    <CardHeader>
-                      <CardTitle>{plan} Plan</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">
-                          Price (KES)
-                        </label>
-                        <Input
-                      defaultValue={
-                      plan === 'Free' ?
-                      '0' :
-                      plan === 'Basic' ?
-                      '2500' :
-                      '7500'
-                      } />
-
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">
-                          Product Limit
-                        </label>
-                        <Input
-                      defaultValue={
-                      plan === 'Free' ?
-                      '20' :
-                      plan === 'Basic' ?
-                      '200' :
-                      'Unlimited'
-                      } />
-
-                      </div>
-                      <Button className="w-full mt-4" variant="secondary">
-                        Update Plan
+                      <Button className="w-full" variant="outline">
+                        <Headset className="mr-2 h-4 w-4" />
+                        Open support cases
                       </Button>
                     </CardContent>
                   </Card>
-              )}
+                </motion.div>
               </div>
-            }
-          </CardContent>
-        </Card>
-      </main>
-    </div>);
 
+              <motion.div whileHover={{ y: -2 }}>
+                <Card>
+                  <CardHeader className="gap-4 border-b border-border">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+                      <div>
+                        <CardTitle>Store health board</CardTitle>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Search stores and identify accounts that need action.
+                        </p>
+                      </div>
+                      <div className="relative w-full lg:w-80">
+                        <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9"
+                          placeholder="Search merchant, store, or issue" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="overflow-x-auto rounded-3xl border border-border">
+                      <table className="w-full min-w-[860px] text-left text-sm">
+                        <thead className="bg-muted/50 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                          <tr>
+                            <th className="px-4 py-3 font-medium">Store</th>
+                            <th className="px-4 py-3 font-medium">Owner</th>
+                            <th className="px-4 py-3 font-medium">Plan</th>
+                            <th className="px-4 py-3 font-medium">Products</th>
+                            <th className="px-4 py-3 font-medium">Revenue</th>
+                            <th className="px-4 py-3 font-medium">Health</th>
+                            <th className="px-4 py-3 font-medium">Issue</th>
+                            <th className="px-4 py-3 font-medium">Created</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {visibleStores.map((store) =>
+                        <motion.tr
+                          key={store.id}
+                          initial={{
+                            opacity: 0,
+                            y: 12
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: 0
+                          }}
+                          className="bg-background transition-colors hover:bg-muted/20">
+
+                              <td className="px-4 py-4 font-semibold text-foreground">{store.name}</td>
+                              <td className="px-4 py-4">{store.owner}</td>
+                              <td className="px-4 py-4">
+                                <Badge variant="outline">{store.plan}</Badge>
+                              </td>
+                              <td className="px-4 py-4">{store.products}</td>
+                              <td className="px-4 py-4 font-medium">{store.revenue}</td>
+                              <td className="px-4 py-4">
+                                {store.health === 'Healthy' &&
+                            <span className="inline-flex items-center text-emerald-600">
+                                    <CheckCircle2 className="mr-1 h-4 w-4" />
+                                    Healthy
+                                  </span>
+                            }
+                                {store.health === 'Needs Review' &&
+                            <span className="inline-flex items-center text-amber-600">
+                                    <Activity className="mr-1 h-4 w-4" />
+                                    Needs Review
+                                  </span>
+                            }
+                                {store.health === 'Suspended' &&
+                            <span className="inline-flex items-center text-red-600">
+                                    <XCircle className="mr-1 h-4 w-4" />
+                                    Suspended
+                                  </span>
+                            }
+                              </td>
+                              <td className="px-4 py-4 text-muted-foreground">{store.issue}</td>
+                              <td className="px-4 py-4 text-muted-foreground">{store.created}</td>
+                            </motion.tr>
+                        )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </motion.div>
+          }
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  description,
+  icon
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <motion.div whileHover={{ y: -3 }}>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+          {icon}
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-foreground">{value}</div>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 }

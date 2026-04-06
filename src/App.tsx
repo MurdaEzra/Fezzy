@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
 import { DashboardLayout } from './components/DashboardLayout';
@@ -10,47 +11,173 @@ import { StoreBuilderPage } from './components/StoreBuilderPage';
 import { SettingsPage } from './components/SettingsPage';
 import { SuperAdminPage } from './components/SuperAdminPage';
 import { LiveStorePage } from './components/LiveStorePage';
+import { RootAdminPage } from './components/RootAdminPage';
+
 export type PageType =
-'landing' |
-'login' |
-'signup' |
-'dashboard' |
-'products' |
-'orders' |
-'analytics' |
-'store-builder' |
-'settings' |
-'admin' |
-'live-store';
+  | 'landing'
+  | 'login'
+  | 'signup'
+  | 'dashboard'
+  | 'products'
+  | 'orders'
+  | 'analytics'
+  | 'store-builder'
+  | 'settings'
+  | 'admin'
+  | 'root-admin'
+  | 'live-store';
+
+export type UserRole = 'merchant' | 'admin' | 'root-admin';
+
+export interface SessionUser {
+  email: string;
+  name: string;
+  role: UserRole;
+  title: string;
+  plan?: string;
+  storeName?: string;
+  storeSubdomain?: string;
+}
+
+const merchantPages: PageType[] = [
+  'dashboard',
+  'products',
+  'orders',
+  'analytics',
+  'store-builder',
+  'settings'
+];
+
 export function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('landing');
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+
+  const accessMap = useMemo(
+    () => ({
+      admin: ['admin', 'root-admin'] as UserRole[],
+      'root-admin': ['root-admin'] as UserRole[],
+      merchant: ['merchant'] as UserRole[]
+    }),
+    []
+  );
+
   const navigate = (page: PageType) => {
+    setCurrentPage(getAuthorizedPage(page, sessionUser, accessMap));
+    window.scrollTo(0, 0);
+  };
+
+  const handleAuthenticate = (user: SessionUser, page: PageType) => {
+    setSessionUser(user);
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
-  if (currentPage === 'landing') {
-    return <LandingPage navigate={navigate} />;
-  }
-  if (currentPage === 'login' || currentPage === 'signup') {
-    return <AuthPage initialTab={currentPage} navigate={navigate} />;
-  }
-  if (currentPage === 'admin') {
-    return <SuperAdminPage navigate={navigate} />;
-  }
-  if (currentPage === 'live-store') {
-    return <LiveStorePage navigate={navigate} />;
-  }
-  // All other routes are wrapped in the DashboardLayout
-  return (
-    <DashboardLayout currentPage={currentPage} navigate={navigate}>
-      {currentPage === 'dashboard' && <DashboardOverview navigate={navigate} />}
-      {currentPage === 'products' && <ProductsPage />}
-      {currentPage === 'orders' && <OrdersPage />}
-      {currentPage === 'analytics' && <AnalyticsPage />}
-      {currentPage === 'store-builder' &&
-      <StoreBuilderPage navigate={navigate} />
-      }
-      {currentPage === 'settings' && <SettingsPage />}
-    </DashboardLayout>);
 
+  const handleLogout = () => {
+    setSessionUser(null);
+    setCurrentPage('landing');
+    window.scrollTo(0, 0);
+  };
+
+  useEffect(() => {
+    const safePage = getAuthorizedPage(currentPage, sessionUser, accessMap);
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+  }, [accessMap, currentPage, sessionUser]);
+
+  let content: React.ReactNode;
+
+  if (currentPage === 'landing') {
+    content = <LandingPage navigate={navigate} sessionUser={sessionUser} />;
+  } else if (currentPage === 'login' || currentPage === 'signup') {
+    content = (
+      <AuthPage
+        initialTab={currentPage}
+        navigate={navigate}
+        onAuthenticate={handleAuthenticate}
+      />
+    );
+  } else if (currentPage === 'admin' && sessionUser) {
+    content = (
+      <SuperAdminPage
+        navigate={navigate}
+        currentUser={sessionUser}
+        onLogout={handleLogout}
+      />
+    );
+  } else if (currentPage === 'root-admin' && sessionUser) {
+    content = (
+      <RootAdminPage
+        navigate={navigate}
+        currentUser={sessionUser}
+        onLogout={handleLogout}
+      />
+    );
+  } else if (currentPage === 'live-store') {
+    content = <LiveStorePage navigate={navigate} />;
+  } else if (sessionUser) {
+    content = (
+      <DashboardLayout
+        currentPage={currentPage}
+        navigate={navigate}
+        currentUser={sessionUser}
+        onLogout={handleLogout}
+      >
+        {currentPage === 'dashboard' && <DashboardOverview navigate={navigate} />}
+        {currentPage === 'products' && <ProductsPage />}
+        {currentPage === 'orders' && <OrdersPage />}
+        {currentPage === 'analytics' && <AnalyticsPage />}
+        {currentPage === 'store-builder' && (
+          <StoreBuilderPage navigate={navigate} />
+        )}
+        {currentPage === 'settings' && <SettingsPage />}
+      </DashboardLayout>
+    );
+  } else {
+    content = (
+      <AuthPage
+        initialTab="login"
+        navigate={navigate}
+        onAuthenticate={handleAuthenticate}
+      />
+    );
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentPage}
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.28, ease: 'easeOut' }}
+      >
+        {content}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function getAuthorizedPage(
+  page: PageType,
+  user: SessionUser | null,
+  accessMap: {
+    admin: UserRole[];
+    'root-admin': UserRole[];
+    merchant: UserRole[];
+  }
+) {
+  if (page === 'admin') {
+    return user && accessMap.admin.includes(user.role) ? page : 'login';
+  }
+
+  if (page === 'root-admin') {
+    return user && accessMap['root-admin'].includes(user.role) ? page : 'login';
+  }
+
+  if (merchantPages.includes(page)) {
+    return user && accessMap.merchant.includes(user.role) ? page : 'login';
+  }
+
+  return page;
 }

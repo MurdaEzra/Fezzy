@@ -22,16 +22,20 @@ import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { Input } from './ui/Input';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { PageType } from '../App';
+import type { PageType, SessionUser } from '../App';
 interface DashboardLayoutProps {
   children: React.ReactNode;
   currentPage: PageType;
   navigate: (page: PageType) => void;
+  currentUser: SessionUser;
+  onLogout: () => void;
 }
 export function DashboardLayout({
   children,
   currentPage,
-  navigate
+  navigate,
+  currentUser,
+  onLogout
 }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -103,6 +107,12 @@ export function DashboardLayout({
     navigate(id as PageType);
     setIsSidebarOpen(false);
   };
+  const userInitials = currentUser.name.
+  split(' ').
+  map((part) => part[0]).
+  join('').
+  slice(0, 2).
+  toUpperCase();
   return (
     <div className="min-h-screen bg-muted/20 flex">
       {/* Mobile Sidebar Overlay */}
@@ -143,19 +153,22 @@ export function DashboardLayout({
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-              MM
+              {userInitials}
             </div>
             <div>
               <p className="font-semibold text-sm text-foreground leading-none">
-                Mama Mboga Store
+                {currentUser.storeName || 'Merchant Workspace'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                mamamboga.fezzy.com
+                {currentUser.storeSubdomain ?
+                `${currentUser.storeSubdomain}.fezzy.shop` :
+                currentUser.email
+                }
               </p>
             </div>
           </div>
           <Badge variant="secondary" className="w-full justify-center mt-2">
-            Free Plan
+            {currentUser.plan || currentUser.title}
           </Badge>
         </div>
 
@@ -179,7 +192,7 @@ export function DashboardLayout({
           <Button
             variant="outline"
             className="w-full justify-start text-muted-foreground"
-            onClick={() => navigate('landing')}>
+            onClick={onLogout}>
 
             <LogOut className="h-4 w-4 mr-2" />
             Log out
@@ -341,7 +354,7 @@ export function DashboardLayout({
                 className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
                 onClick={() => setShowProfileMenu(!showProfileMenu)}>
 
-                J
+                {userInitials}
               </div>
 
               <AnimatePresence>
@@ -368,9 +381,9 @@ export function DashboardLayout({
                   className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50">
 
                     <div className="p-4 border-b border-border">
-                      <p className="font-medium text-sm">James Doe</p>
+                      <p className="font-medium text-sm">{currentUser.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        james@mamamboga.co.ke
+                        {currentUser.email}
                       </p>
                     </div>
                     <div className="p-2">
@@ -399,7 +412,7 @@ export function DashboardLayout({
                     <div className="p-2 border-t border-border">
                       <button
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors"
-                      onClick={() => navigate('landing')}>
+                      onClick={onLogout}>
 
                         <LogOut className="h-4 w-4" /> Log out
                       </button>

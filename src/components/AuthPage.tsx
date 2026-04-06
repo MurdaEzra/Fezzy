@@ -1,4 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Crown,
+  KeyRound,
+  LoaderCircle,
+  ShieldCheck,
+  Store
+} from 'lucide-react';
 import { Button } from './ui/Button';
 import {
   Card,
@@ -6,255 +15,403 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle } from
-'./ui/Card';
+  CardTitle
+} from './ui/Card';
 import { Input } from './ui/Input';
-import { Store, ArrowLeft, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { PageType } from '../App';
+import type { PageType, SessionUser } from '../App';
+
 interface AuthPageProps {
   initialTab: 'login' | 'signup';
   navigate: (page: PageType) => void;
+  onAuthenticate: (user: SessionUser, targetPage: PageType) => void;
 }
-export function AuthPage({ initialTab, navigate }: AuthPageProps) {
+
+const demoAccounts: Array<
+  SessionUser & { password: string; targetPage: PageType; accent: string }
+> = [
+  {
+    name: 'James Kariuki',
+    email: 'merchant@fezzy.co.ke',
+    password: 'Store123!',
+    role: 'merchant',
+    title: 'Store Owner',
+    plan: 'Growth Plan',
+    storeName: 'Mama Mboga Market',
+    storeSubdomain: 'mamamboga',
+    targetPage: 'dashboard',
+    accent: 'Merchant'
+  },
+  {
+    name: 'Alice Wanjiru',
+    email: 'ops@fezzy.co.ke',
+    password: 'Admin123!',
+    role: 'admin',
+    title: 'Platform Admin',
+    targetPage: 'admin',
+    accent: 'Operations'
+  },
+  {
+    name: 'David Otieno',
+    email: 'root@fezzy.co.ke',
+    password: 'Root123!',
+    role: 'root-admin',
+    title: 'Root Admin',
+    targetPage: 'root-admin',
+    accent: 'Owner'
+  }
+];
+
+export function AuthPage({
+  initialTab,
+  navigate,
+  onAuthenticate
+}: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(initialTab === 'login');
+  const [fullName, setFullName] = useState('');
   const [storeName, setStoreName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const generateSubdomain = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'storename';
-  };
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const subdomain = useMemo(
+    () => storeName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'storename',
+    [storeName]
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLogin && !agreedToTerms) return;
-    // Mock authentication - route to dashboard
-    navigate('dashboard');
+    setError('');
+    setIsSubmitting(true);
+
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+
+    if (isLogin) {
+      const account = demoAccounts.find(
+        (entry) =>
+          entry.email.toLowerCase() === email.trim().toLowerCase() &&
+          entry.password === password
+      );
+
+      if (!account) {
+        setError('Use one of the FEZZY demo credentials below to open a workspace.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { password: _unused, targetPage, accent: _accent, ...user } = account;
+      onAuthenticate(user, targetPage);
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError('Accept the terms first so we can create your store workspace.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    onAuthenticate(
+      {
+        name: fullName || 'New Merchant',
+        email: email.toLowerCase(),
+        role: 'merchant',
+        title: 'Store Owner',
+        plan: 'Free Trial',
+        storeName: storeName || 'New Store',
+        storeSubdomain: subdomain
+      },
+      'dashboard'
+    );
   };
+
+  const fillDemoLogin = (account: (typeof demoAccounts)[number]) => {
+    setIsLogin(true);
+    setEmail(account.email);
+    setPassword(account.password);
+    setError('');
+  };
+
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <button
-          onClick={() => navigate('landing')}
-          className="flex items-center text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.2),_transparent_35%),linear-gradient(180deg,_#fff8f5_0%,_#ffffff_48%,_#f8fafc_100%)] px-4 py-8">
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <motion.section
+          initial={{ opacity: 0, x: -28 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.45 }}
+          className="rounded-[32px] border border-white/60 bg-slate-950 px-7 py-8 text-slate-50 shadow-2xl shadow-orange-200/40 lg:px-10 lg:py-12"
+        >
+          <button
+            onClick={() => navigate('landing')}
+            className="mb-10 inline-flex items-center text-sm text-slate-300 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to home
+          </button>
 
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to home
-        </button>
-
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary text-primary-foreground p-2 rounded-lg shadow-sm">
-              <Store className="h-6 w-6" />
+          <div className="mb-8 flex items-center gap-3">
+            <div className="rounded-2xl bg-primary p-3 text-primary-foreground shadow-lg shadow-primary/30">
+              <Store className="h-7 w-7" />
             </div>
-            <span className="text-3xl font-bold tracking-tight text-foreground">
-              FEZZY
-            </span>
+            <div>
+              <p className="text-3xl font-bold tracking-tight">FEZZY</p>
+              <p className="text-sm text-slate-300">
+                Merchant, admin, and root admin access
+              </p>
+            </div>
           </div>
-        </div>
+
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.08
+                }
+              }
+            }}
+            className="space-y-5"
+          >
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } }}
+            >
+              <p className="mb-3 inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">
+                Role Based Login
+              </p>
+              <h1 className="max-w-xl text-4xl font-bold leading-tight text-white">
+                FEZZY now includes a Root Admin login for platform-wide store management.
+              </h1>
+              <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
+                Sign in as a merchant, platform admin, or root admin and land in the
+                correct workspace with polished motion and realistic loading states.
+              </p>
+            </motion.div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <FeatureCard
+                icon={<Store className="h-5 w-5 text-emerald-300" />}
+                title="Merchant Workspace"
+                body="Manage products, orders, and storefront content."
+              />
+              <FeatureCard
+                icon={<ShieldCheck className="h-5 w-5 text-amber-300" />}
+                title="Admin Console"
+                body="Oversee store health, billing, and support operations."
+              />
+              <FeatureCard
+                icon={<Crown className="h-5 w-5 text-sky-300" />}
+                title="Root Admin"
+                body="Control payouts, approvals, and platform-wide store governance."
+              />
+            </div>
+
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } }}
+              className="rounded-[28px] border border-white/10 bg-white/5 p-5"
+            >
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-white">Demo credentials</p>
+                  <p className="text-sm text-slate-300">
+                    Click any account to prefill the login form.
+                  </p>
+                </div>
+                <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">
+                  local demo
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {demoAccounts.map((account) => (
+                  <motion.button
+                    key={account.email}
+                    type="button"
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => fillDemoLogin(account)}
+                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-left transition-colors hover:border-orange-300/40 hover:bg-slate-900"
+                  >
+                    <div>
+                      <p className="font-medium text-white">{account.title}</p>
+                      <p className="text-sm text-slate-300">{account.email}</p>
+                    </div>
+                    <div className="text-right text-xs text-slate-300">
+                      <p>{account.password}</p>
+                      <p className="mt-1 uppercase tracking-[0.16em] text-slate-400">
+                        {account.accent}
+                      </p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
         <AnimatePresence mode="wait">
           <motion.div
             key={isLogin ? 'login' : 'signup'}
-            initial={{
-              opacity: 0,
-              y: 20
-            }}
-            animate={{
-              opacity: 1,
-              y: 0
-            }}
-            exit={{
-              opacity: 0,
-              y: -20
-            }}
-            transition={{
-              duration: 0.3
-            }}>
-
-            <Card className="shadow-xl border-border/50">
-              <CardHeader className="space-y-1">
-                <div className="flex bg-muted p-1 rounded-lg mb-6">
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+            transition={{ duration: 0.28 }}
+          >
+            <Card className="border-border/60 shadow-2xl shadow-slate-200/70">
+              <CardHeader className="space-y-4">
+                <div className="flex rounded-full bg-muted p-1">
                   <button
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${isLogin ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    onClick={() => setIsLogin(true)}>
-
-                    Log in
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(true);
+                      setError('');
+                    }}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${isLogin ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Login
                   </button>
                   <button
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${!isLogin ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    onClick={() => setIsLogin(false)}>
-
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(false);
+                      setError('');
+                    }}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition-all ${!isLogin ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
                     Sign up
                   </button>
                 </div>
-                <CardTitle className="text-2xl text-center">
-                  {isLogin ? 'Welcome back' : 'Create an account'}
-                </CardTitle>
-                <CardDescription className="text-center">
-                  {isLogin ?
-                  'Enter your email to sign in to your store' :
-                  'Start your 14-day free trial today'}
-                </CardDescription>
+
+                <div className="text-center">
+                  <CardTitle className="text-3xl">
+                    {isLogin ? 'Access your workspace' : 'Create your store'}
+                  </CardTitle>
+                  <CardDescription className="mt-2 text-base">
+                    {isLogin ?
+                      'Use a merchant, admin, or root admin login to enter the right console.' :
+                      'Create a merchant account and launch with a branded FEZZY store.'}
+                  </CardDescription>
+                </div>
               </CardHeader>
+
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {!isLogin &&
-                  <div className="space-y-2">
-                      <label
-                      className="text-sm font-medium text-foreground"
-                      htmlFor="fullName">
-
-                        Full Name
+                  {!isLogin && (
+                    <div className="space-y-2">
+                      <label htmlFor="fullName" className="text-sm font-medium text-foreground">
+                        Full name
                       </label>
-                      <Input id="fullName" placeholder="John Doe" required />
+                      <Input
+                        id="fullName"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Amina Yusuf"
+                        required
+                      />
                     </div>
-                  }
+                  )}
 
                   <div className="space-y-2">
-                    <label
-                      className="text-sm font-medium text-foreground"
-                      htmlFor="email">
-
+                    <label htmlFor="email" className="text-sm font-medium text-foreground">
                       Email
                     </label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
-                      required />
-
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={isLogin ? 'root@fezzy.co.ke' : 'amina@brand.co.ke'}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label
-                        className="text-sm font-medium text-foreground"
-                        htmlFor="password">
-
-                        Password
-                      </label>
-                      {isLogin &&
-                      <a
-                        href="#"
-                        className="text-sm text-primary hover:underline">
-
-                          Forgot password?
-                        </a>
-                      }
-                    </div>
-                    <Input id="password" type="password" required />
+                    <label htmlFor="password" className="text-sm font-medium text-foreground">
+                      Password
+                    </label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={isLogin ? 'Use demo password' : 'Choose a secure password'}
+                      required
+                    />
                   </div>
 
-                  {!isLogin &&
-                  <>
+                  {!isLogin && (
+                    <>
                       <div className="space-y-2">
-                        <label
-                        className="text-sm font-medium text-foreground"
-                        htmlFor="storeName">
-
-                          Store Name
+                        <label htmlFor="storeName" className="text-sm font-medium text-foreground">
+                          Store name
                         </label>
                         <Input
-                        id="storeName"
-                        placeholder="My Awesome Store"
-                        value={storeName}
-                        onChange={(e) => setStoreName(e.target.value)}
-                        required />
-
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Your store will be at:{' '}
-                          <span className="font-medium text-foreground">
-                            {generateSubdomain(storeName)}.fezzy.com
-                          </span>
+                          id="storeName"
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
+                          placeholder="Amina Beauty House"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your store URL: <span className="font-semibold text-foreground">{subdomain}.fezzy.shop</span>
                         </p>
                       </div>
 
-                      <div className="flex items-start space-x-2 mt-4">
+                      <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
                         <input
-                        type="checkbox"
-                        id="terms"
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        checked={agreedToTerms}
-                        onChange={(e) => setAgreedToTerms(e.target.checked)} />
-
-                        <label
-                        htmlFor="terms"
-                        className="text-sm text-muted-foreground leading-snug">
-
-                          I agree to the{' '}
-                          <button
-                          type="button"
-                          className="text-primary hover:underline font-medium"
-                          onClick={() => setShowTerms(true)}>
-
-                            Terms of Service
-                          </button>{' '}
-                          and{' '}
-                          <button
-                          type="button"
-                          className="text-primary hover:underline font-medium"
-                          onClick={() => setShowPrivacy(true)}>
-
-                            Privacy Policy
-                          </button>
-                        </label>
-                      </div>
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                        />
+                        <span>
+                          I agree to the FEZZY terms so this store can be provisioned.
+                        </span>
+                      </label>
                     </>
-                  }
+                  )}
 
-                  <Button
-                    type="submit"
-                    className="w-full mt-6 h-11"
-                    disabled={!isLogin && !agreedToTerms}>
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                      >
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                    {isLogin ? 'Log in' : 'Create Store'}
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ?
+                      <>
+                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                        {isLogin ? 'Authenticating...' : 'Creating store...'}
+                      </> :
+                      <>
+                        <KeyRound className="mr-2 h-4 w-4" />
+                        {isLogin ? 'Access workspace' : 'Create store and continue'}
+                      </>
+                    }
                   </Button>
                 </form>
-
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-
-                <Button variant="outline" className="w-full h-11" type="button">
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4" />
-
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853" />
-
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05" />
-
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335" />
-
-                  </svg>
-                  Google
-                </Button>
               </CardContent>
-              <CardFooter className="flex justify-center border-t border-border/50 pt-6">
-                <p className="text-sm text-muted-foreground">
-                  {isLogin ?
-                  "Don't have an account? " :
-                  'Already have an account? '}
-                  <button
-                    className="text-primary font-medium hover:underline"
-                    onClick={() => setIsLogin(!isLogin)}>
 
-                    {isLogin ? 'Sign up' : 'Log in'}
+              <CardFooter className="border-t border-border/60 pt-6">
+                <p className="w-full text-center text-sm text-muted-foreground">
+                  {isLogin ? 'Need a merchant account? ' : 'Already have an account? '}
+                  <button
+                    type="button"
+                    className="font-semibold text-primary hover:underline"
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setError('');
+                    }}
+                  >
+                    {isLogin ? 'Create a store' : 'Log in'}
                   </button>
                 </p>
               </CardFooter>
@@ -262,161 +419,27 @@ export function AuthPage({ initialTab, navigate }: AuthPageProps) {
           </motion.div>
         </AnimatePresence>
       </div>
+    </div>
+  );
+}
 
-      {/* Terms Modal */}
-      {showTerms &&
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <motion.div
-          initial={{
-            opacity: 0,
-            scale: 0.95
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0.95
-          }}
-          className="bg-card w-full max-w-lg rounded-lg shadow-xl border border-border overflow-hidden flex flex-col max-h-[80vh]">
-
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold">Terms of Service</h2>
-              <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowTerms(false)}>
-
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1 space-y-4 text-sm text-muted-foreground">
-              <p>
-                <strong>1. Acceptance of Terms</strong>
-                <br />
-                By accessing and using FEZZY, you accept and agree to be bound
-                by the terms and provision of this agreement.
-              </p>
-              <p>
-                <strong>2. Account Responsibilities</strong>
-                <br />
-                You are responsible for maintaining the confidentiality of your
-                account and password and for restricting access to your
-                computer, and you agree to accept responsibility for all
-                activities that occur under your account or password.
-              </p>
-              <p>
-                <strong>3. Payment Terms</strong>
-                <br />
-                All payments processed through our platform, including M-Pesa
-                transactions, are subject to our standard processing fees as
-                outlined in our pricing page. You agree to provide current,
-                complete, and accurate purchase and account information for all
-                purchases made at our store.
-              </p>
-              <p>
-                <strong>4. Intellectual Property</strong>
-                <br />
-                The Service and its original content, features, and
-                functionality are and will remain the exclusive property of
-                FEZZY and its licensors.
-              </p>
-              <p>
-                <strong>5. Termination</strong>
-                <br />
-                We may terminate or suspend access to our Service immediately,
-                without prior notice or liability, for any reason whatsoever,
-                including without limitation if you breach the Terms.
-              </p>
-            </div>
-            <div className="p-4 border-t border-border bg-muted/10 flex justify-end">
-              <Button onClick={() => setShowTerms(false)}>I Understand</Button>
-            </div>
-          </motion.div>
-        </div>
-      }
-
-      {/* Privacy Modal */}
-      {showPrivacy &&
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <motion.div
-          initial={{
-            opacity: 0,
-            scale: 0.95
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0.95
-          }}
-          className="bg-card w-full max-w-lg rounded-lg shadow-xl border border-border overflow-hidden flex flex-col max-h-[80vh]">
-
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold">Privacy Policy</h2>
-              <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowPrivacy(false)}>
-
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1 space-y-4 text-sm text-muted-foreground">
-              <p>
-                <strong>1. Information Collection</strong>
-                <br />
-                We collect information from you when you register on our site,
-                place an order, subscribe to our newsletter, respond to a survey
-                or fill out a form. When ordering or registering on our site, as
-                appropriate, you may be asked to enter your: name, e-mail
-                address, mailing address, phone number or credit card
-                information.
-              </p>
-              <p>
-                <strong>2. M-Pesa Transaction Data</strong>
-                <br />
-                For transactions processed via M-Pesa, we collect and store
-                transaction references, phone numbers, and amounts to facilitate
-                order fulfillment and refunds. We do not store your M-Pesa PIN.
-              </p>
-              <p>
-                <strong>3. Use of Information</strong>
-                <br />
-                Any of the information we collect from you may be used in one of
-                the following ways: To personalize your experience; To improve
-                our website; To improve customer service; To process
-                transactions; To send periodic emails.
-              </p>
-              <p>
-                <strong>4. Cookies</strong>
-                <br />
-                We use cookies to help us remember and process the items in your
-                shopping cart, understand and save your preferences for future
-                visits and compile aggregate data about site traffic and site
-                interaction.
-              </p>
-              <p>
-                <strong>5. Third-Party Disclosure</strong>
-                <br />
-                We do not sell, trade, or otherwise transfer to outside parties
-                your personally identifiable information. This does not include
-                trusted third parties who assist us in operating our website,
-                conducting our business, or servicing you, so long as those
-                parties agree to keep this information confidential.
-              </p>
-            </div>
-            <div className="p-4 border-t border-border bg-muted/10 flex justify-end">
-              <Button onClick={() => setShowPrivacy(false)}>
-                I Understand
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      }
-    </div>);
-
+function FeatureCard({
+  icon,
+  title,
+  body
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <motion.div
+      variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } }}
+      className="rounded-3xl border border-white/10 bg-white/5 p-4"
+    >
+      <div className="mb-4">{icon}</div>
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+    </motion.div>
+  );
 }
