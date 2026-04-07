@@ -366,7 +366,23 @@ export function AuthPage({
                           onChange={(e) => setAgreedToTerms(e.target.checked)}
                         />
                         <span>
-                          I agree to the FEZZY terms so this store can be provisioned.
+                          I agree to the{' '}
+                          <button
+                            type="button"
+                            className="font-semibold text-primary hover:underline"
+                            onClick={() => navigate('terms')}
+                          >
+                            Terms & Conditions
+                          </button>{' '}
+                          and{' '}
+                          <button
+                            type="button"
+                            className="font-semibold text-primary hover:underline"
+                            onClick={() => navigate('privacy')}
+                          >
+                            Privacy Policy
+                          </button>{' '}
+                          so this store can be provisioned.
                         </span>
                       </label>
                     </>

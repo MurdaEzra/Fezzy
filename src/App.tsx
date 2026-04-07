@@ -12,6 +12,10 @@ import { SettingsPage } from './components/SettingsPage';
 import { SuperAdminPage } from './components/SuperAdminPage';
 import { LiveStorePage } from './components/LiveStorePage';
 import { RootAdminPage } from './components/RootAdminPage';
+import { PricingPage } from './components/PricingPage';
+import { FaqPage } from './components/FaqPage';
+import { TermsPage } from './components/TermsPage';
+import { PrivacyPage } from './components/PrivacyPage';
 
 export type PageType =
   | 'landing'
@@ -25,6 +29,10 @@ export type PageType =
   | 'settings'
   | 'admin'
   | 'root-admin'
+  | 'pricing'
+  | 'faq'
+  | 'terms'
+  | 'privacy'
   | 'live-store';
 
 export type UserRole = 'merchant' | 'admin' | 'root-admin';
@@ -89,6 +97,14 @@ export function App() {
 
   if (currentPage === 'landing') {
     content = <LandingPage navigate={navigate} sessionUser={sessionUser} />;
+  } else if (currentPage === 'pricing') {
+    content = <PricingPage navigate={navigate} sessionUser={sessionUser} />;
+  } else if (currentPage === 'faq') {
+    content = <FaqPage navigate={navigate} sessionUser={sessionUser} />;
+  } else if (currentPage === 'terms') {
+    content = <TermsPage navigate={navigate} sessionUser={sessionUser} />;
+  } else if (currentPage === 'privacy') {
+    content = <PrivacyPage navigate={navigate} sessionUser={sessionUser} />;
   } else if (currentPage === 'login' || currentPage === 'signup') {
     content = (
       <AuthPage

@@ -16,7 +16,6 @@ import {
   Sparkles,
   MessageCircle,
   Check,
-  ChevronDown,
   Star,
   Menu,
   X,
@@ -32,7 +31,6 @@ interface LandingPageProps {
 }
 export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isDark, setIsDark] = useState(false);
   const workspacePage =
   sessionUser?.role === 'root-admin' ?
@@ -84,28 +82,6 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
     desc: 'Receive and manage orders directly via WhatsApp.'
   }];
 
-  const faqs = [
-  {
-    q: 'Do I need technical skills to use FEZZY?',
-    a: 'Not at all! Our drag-and-drop builder makes it easy for anyone to create a professional online store without writing a single line of code.'
-  },
-  {
-    q: 'How do I receive payments via M-Pesa?',
-    a: 'We integrate directly with M-Pesa Daraja API. You just need to enter your Paybill or Till number in the settings, and payments go straight to your account.'
-  },
-  {
-    q: 'Can I use my own domain name?',
-    a: 'Yes! You can connect any custom domain (.co.ke, .com, etc.) on our Basic and Pro plans. We also provide a free storename.fezzy.com subdomain for all users.'
-  },
-  {
-    q: 'Is there a limit to how many products I can sell?',
-    a: 'The Free plan allows up to 20 products. For unlimited products, you can upgrade to our Pro plan.'
-  },
-  {
-    q: 'Do you take a commission on my sales?',
-    a: 'FEZZY offers both subscription plans with 0% transaction fees and a Pay As You Go plan with just 2% per transaction. Choose what works best for your business.'
-  }];
-
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       {/* Left Accent Line */}
@@ -126,23 +102,25 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <a
-              href="features"
+              href="#features"
               className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
 
               Features
             </a>
-            <a
-              href="pricing"
-              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+            <button
+              type="button"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => navigate('pricing')}>
 
               Pricing
-            </a>
-            <a
-              href="testimonials"
-              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+            </button>
+            <button
+              type="button"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => navigate('faq')}>
 
-              Testimonials
-            </a>
+              FAQs
+            </button>
             <div className="flex items-center gap-4 ml-4 border-l border-border pl-6">
               <button
                 onClick={toggleDarkMode}
@@ -200,26 +178,32 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
         {isMobileMenuOpen &&
         <div className="md:hidden border-t border-border bg-background p-4 flex flex-col gap-4">
             <a
-            href="features"
+            href="#features"
             className="text-sm font-semibold p-2"
             onClick={() => setIsMobileMenuOpen(false)}>
 
               Features
             </a>
-            <a
-            href="pricing"
-            className="text-sm font-semibold p-2"
-            onClick={() => setIsMobileMenuOpen(false)}>
+            <button
+            type="button"
+            className="text-left text-sm font-semibold p-2"
+            onClick={() => {
+              navigate('pricing');
+              setIsMobileMenuOpen(false);
+            }}>
 
               Pricing
-            </a>
-            <a
-            href="testimonials"
-            className="text-sm font-semibold p-2"
-            onClick={() => setIsMobileMenuOpen(false)}>
+            </button>
+            <button
+            type="button"
+            className="text-left text-sm font-semibold p-2"
+            onClick={() => {
+              navigate('faq');
+              setIsMobileMenuOpen(false);
+            }}>
 
-              Testimonials
-            </a>
+              FAQs
+            </button>
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
               {sessionUser ?
               <Button
@@ -456,179 +440,33 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="py-24 px-4">
+        <section className="py-24 px-4">
           <div className="container mx-auto max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-                Simple, transparent pricing
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Choose the plan that fits your business needs. Upgrade or
-                downgrade at any time.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-              {/* Free Plan */}
-              <Card className="flex flex-col rounded-3xl">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="rounded-3xl border-border/60 bg-background">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Free</CardTitle>
-                  <CardDescription>Perfect for getting started</CardDescription>
-                  <div className="mt-4 flex items-baseline text-4xl font-extrabold">
-                    KES 0
-                    <span className="ml-1 text-xl font-medium text-muted-foreground">
-                      /mo
-                    </span>
-                  </div>
+                  <CardTitle className="text-3xl">Explore Pricing</CardTitle>
+                  <CardDescription className="text-base">
+                    Compare merchant plans, transaction options, and growth tiers on a dedicated pricing page.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1">
-                  <ul className="space-y-4">
-                    {[
-                    'Up to 20 products',
-                    'storename.fezzy.com subdomain',
-                    'M-Pesa Integration',
-                    'Basic Analytics',
-                    'FEZZY Branding'].
-                    map((item, i) =>
-                    <li key={i} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-primary shrink-0" />
-                        <span className="text-muted-foreground text-sm font-medium">
-                          {item}
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </CardContent>
                 <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => navigate('signup')}>
-
-                    Get Started
+                  <Button onClick={() => navigate('pricing')}>
+                    View Pricing
                   </Button>
                 </CardFooter>
               </Card>
 
-              {/* Basic Plan */}
-              <Card className="flex flex-col border-primary shadow-xl relative scale-105 z-10 rounded-3xl">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Most Popular
-                </div>
+              <Card className="rounded-3xl border-border/60 bg-background">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Basic</CardTitle>
-                  <CardDescription>For growing businesses</CardDescription>
-                  <div className="mt-4 flex items-baseline text-4xl font-extrabold">
-                    KES 2,500
-                    <span className="ml-1 text-xl font-medium text-muted-foreground">
-                      /mo
-                    </span>
-                  </div>
+                  <CardTitle className="text-3xl">Read Our FAQs</CardTitle>
+                  <CardDescription className="text-base">
+                    Get answers about M-Pesa, custom domains, subscriptions, and merchant onboarding.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1">
-                  <ul className="space-y-4">
-                    {[
-                    'Up to 200 products',
-                    'Custom Domain (.co.ke, .com)',
-                    'Remove FEZZY Branding',
-                    'Advanced Analytics',
-                    'Email Support'].
-                    map((item, i) =>
-                    <li key={i} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-primary shrink-0" />
-                        <span className="text-muted-foreground text-sm font-medium">
-                          {item}
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => navigate('signup')}>
-                    Start 14-Day Trial
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Pro Plan */}
-              <Card className="flex flex-col rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Pro</CardTitle>
-                  <CardDescription>For high-volume sellers</CardDescription>
-                  <div className="mt-4 flex items-baseline text-4xl font-extrabold">
-                    KES 7,500
-                    <span className="ml-1 text-xl font-medium text-muted-foreground">
-                      /mo
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <ul className="space-y-4">
-                    {[
-                    'Unlimited products',
-                    'Everything in Basic',
-                    'AI Product Descriptions',
-                    'Email Marketing Tools',
-                    'Priority 24/7 Support'].
-                    map((item, i) =>
-                    <li key={i} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-primary shrink-0" />
-                        <span className="text-muted-foreground text-sm font-medium">
-                          {item}
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    onClick={() => navigate('signup')}>
-
-                    Get Started
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Pay As You Go Plan */}
-              <Card className="flex flex-col border-secondary/30 bg-secondary/5 rounded-3xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Pay As You Go</CardTitle>
-                  <CardDescription>Only pay when you sell</CardDescription>
-                  <div className="mt-4 flex items-baseline text-4xl font-extrabold">
-                    2%
-                    <span className="ml-1 text-xl font-medium text-muted-foreground">
-                      /transaction
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <ul className="space-y-4">
-                    {[
-                    'Unlimited products',
-                    'Custom Domain (.co.ke, .com)',
-                    'Remove FEZZY Branding',
-                    'M-Pesa & Card Payments',
-                    'Basic Analytics',
-                    'No monthly commitment'].
-                    map((item, i) =>
-                    <li key={i} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-secondary shrink-0" />
-                        <span className="text-muted-foreground text-sm font-medium">
-                          {item}
-                        </span>
-                      </li>
-                    )}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full border-secondary/30 text-secondary hover:bg-secondary/10"
-                    variant="outline"
-                    onClick={() => navigate('signup')}>
-
-                    Start Selling
+                  <Button variant="outline" onClick={() => navigate('faq')}>
+                    Open FAQs
                   </Button>
                 </CardFooter>
               </Card>
@@ -699,42 +537,6 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="py-24 px-4">
-          <div className="container mx-auto max-w-3xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-                Frequently Asked Questions
-              </h2>
-            </div>
-            <div className="space-y-4">
-              {faqs.map((faq, i) =>
-              <div
-                key={i}
-                className="border border-border rounded-2xl overflow-hidden bg-card">
-
-                  <button
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-muted/50 transition-colors"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-
-                    <span className="font-bold text-lg text-foreground">
-                      {faq.q}
-                    </span>
-                    <ChevronDown
-                    className={`h-5 w-5 text-muted-foreground transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
-
-                  </button>
-                  {openFaq === i &&
-                <div className="p-6 pt-0 bg-background text-muted-foreground leading-relaxed text-lg">
-                      {faq.a}
-                    </div>
-                }
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
         {/* CTA */}
         <section className="py-24 bg-primary text-primary-foreground text-center px-4 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
@@ -760,18 +562,20 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
 
       {/* Footer */}
       <footer className="bg-background border-t border-border py-12 px-4">
-        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-secondary">
-              FEZZY
-            </span>
-          </div>
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between ">
+            <img
+              src="https://res.cloudinary.com/dgfmhyebp/image/upload/v1775503932/Untitled_design_6_-Photoroom_qi5ng3.png"
+              alt="Lashawn Driving & Computer College"
+              className="h-10 md:h-16 lg:h-24 w-auto object-contain" />
           <div className="text-muted-foreground font-medium">
             © {new Date().getFullYear()} FEZZY Technologies. All rights
             reserved.
           </div>
-          <div className="font-medium text-muted-foreground">
-            Made with <span className="text-destructive">❤️</span> in Nairobi
+          <div className="flex flex-wrap gap-4 font-medium text-muted-foreground">
+            <button type="button" onClick={() => navigate('pricing')}>Pricing</button>
+            <button type="button" onClick={() => navigate('faq')}>FAQs</button>
+            <button type="button" onClick={() => navigate('terms')}>Terms & Conditions</button>
+            <button type="button" onClick={() => navigate('privacy')}>Privacy Policy</button>
           </div>
         </div>
       </footer>
