@@ -16,7 +16,6 @@ import {
   Sparkles,
   MessageCircle,
   Check,
-  Star,
   Menu,
   X,
   ArrowRight,
@@ -474,65 +473,39 @@ export function LandingPage({ navigate, sessionUser }: LandingPageProps) {
           </div>
         </section>
 
-        {/* Testimonials */}
+        {/* Platform Value */}
         <section id="testimonials" className="py-24 bg-muted/30 px-4">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-                Trusted by Kenyan Entrepreneurs
+                Built For Real Commerce Operations
               </h2>
+              <p className="mx-auto max-w-3xl text-lg text-muted-foreground">
+                FEZZY now connects storefronts, merchant operations, and admin workflows to your live backend instead of sample merchants or fabricated testimonials.
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-              {
-                name: 'Wanjiku N.',
-                biz: 'Shiku Styles',
-                quote:
-                'FEZZY made it so easy to move my boutique online. The M-Pesa integration works flawlessly!'
-              },
-              {
-                name: 'Ochieng O.',
-                biz: 'Lake View Electronics',
-                quote:
-                'I tried other platforms but they were too complex. FEZZY is built for our market. Highly recommended.'
-              },
-              {
-                name: 'Amina Y.',
-                biz: 'Amina Beauty',
-                quote:
-                'The custom domain feature gave my business the professional look it needed. Sales have doubled!'
-              }].
-              map((t, i) =>
-              <Card
-                key={i}
-                className="bg-background rounded-2xl border-none shadow-md">
-
+                {
+                  title: 'Supabase-backed auth',
+                  body: 'Merchant and admin access now map to real Supabase users and metadata instead of demo email shortcuts.'
+                },
+                {
+                  title: 'Database-driven operations',
+                  body: 'Products, orders, settings, storefront pages, and admin dashboards now load from your live tables.'
+                },
+                {
+                  title: 'Secure image workflow',
+                  body: 'Cloudinary uploads are prepared around signed uploads so only secure URLs are stored in your database.'
+                }
+              ].map((item) => (
+                <Card key={item.title} className="bg-background rounded-2xl border-none shadow-md">
                   <CardContent className="pt-8">
-                    <div className="flex gap-1 mb-6">
-                      {[1, 2, 3, 4, 5].map((star) =>
-                    <Star
-                      key={star}
-                      className="h-5 w-5 fill-accent text-accent" />
-
-                    )}
-                    </div>
-                    <p className="text-muted-foreground text-lg italic mb-8 leading-relaxed">
-                      "{t.quote}"
-                    </p>
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
-                        {t.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-foreground">{t.name}</p>
-                        <p className="text-sm font-medium text-muted-foreground">
-                          {t.biz}
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-xl font-bold text-foreground mb-4">{item.title}</p>
+                    <p className="text-muted-foreground text-base leading-relaxed">{item.body}</p>
                   </CardContent>
                 </Card>
-              )}
+              ))}
             </div>
           </div>
         </section>

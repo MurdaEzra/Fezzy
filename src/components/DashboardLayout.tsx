@@ -94,7 +94,7 @@ export function DashboardLayout({
   },
   {
     id: 'store-builder',
-    label: 'Store Builder',
+    label: 'Website Builder',
     icon: <LayoutTemplate className="h-5 w-5" />
   },
   {
@@ -246,8 +246,8 @@ export function DashboardLayout({
                 onClick={() => setShowNotifications(!showNotifications)}>
 
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center border-2 border-card">
-                  3
+                <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-muted text-[10px] font-bold text-muted-foreground flex items-center justify-center border-2 border-card">
+                  0
                 </span>
               </button>
 
@@ -281,61 +281,8 @@ export function DashboardLayout({
                       </button>
                     </div>
                     <div className="max-h-[300px] overflow-y-auto">
-                      <div className="p-4 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                            <ShoppingCart className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              New Order #FZ-1005
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Wanjiku Njoroge just placed an order for KES
-                              4,500.
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-2">
-                              10 minutes ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                            <Package className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              Low Stock Alert
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Carved Wooden Elephant is running low (3 left).
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-2">
-                              2 hours ago
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 hover:bg-muted/30 transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                            <Store className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              Store Published
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Your latest changes have been published
-                              successfully.
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-2">
-                              Yesterday
-                            </p>
-                          </div>
-                        </div>
+                      <div className="p-6 text-center text-sm text-muted-foreground">
+                        Notifications will appear here once you connect live events and alerts.
                       </div>
                     </div>
                     <div className="p-2 border-t border-border text-center bg-muted/10">

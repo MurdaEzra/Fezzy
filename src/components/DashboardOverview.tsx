@@ -1,160 +1,227 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { Button } from './ui/Button';
-import { Badge } from './ui/Badge';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  TrendingUp,
-  ShoppingBag,
-  Package,
-  Users,
-  Plus,
+  AlertCircle,
   Eye,
   LayoutTemplate,
+  LoaderCircle,
+  Package,
+  Plus,
   Share2,
-  AlertCircle } from
-'lucide-react';
+  ShoppingBag,
+  TrendingUp,
+  Users
+} from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { PageType } from '../App';
+import type { PageType, SessionUser } from '../App';
+import { supabase } from '../contexts/supabaseClient';
+import { formatCurrency, formatDateTime, getCurrentStoreForUser } from '../lib/store';
+import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
+
 interface DashboardOverviewProps {
   navigate: (page: PageType) => void;
+  currentUser: SessionUser;
 }
-export function DashboardOverview({ navigate }: DashboardOverviewProps) {
-  const stats = [
-  {
-    title: 'Total Revenue',
-    value: 'KES 125,400',
-    trend: '+12.5%',
-    icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />,
-    positive: true
-  },
-  {
-    title: 'Total Orders',
-    value: '48',
-    trend: '+8 this week',
-    icon: <ShoppingBag className="h-4 w-4 text-muted-foreground" />,
-    positive: true
-  },
-  {
-    title: 'Products',
-    value: '35',
-    trend: '3 low stock',
-    icon: <Package className="h-4 w-4 text-muted-foreground" />,
-    positive: false
-  },
-  {
-    title: 'Store Visits',
-    value: '1,240',
-    trend: '+22%',
-    icon: <Users className="h-4 w-4 text-muted-foreground" />,
-    positive: true
-  }];
 
-  const recentOrders = [
-  {
-    id: '#FZ-1005',
-    customer: 'Wanjiku Njoroge',
-    amount: 'KES 4,500',
-    status: 'Paid',
-    date: 'Today, 10:42 AM'
-  },
-  {
-    id: '#FZ-1004',
-    customer: 'Ochieng Odhiambo',
-    amount: 'KES 12,000',
-    status: 'Pending',
-    date: 'Today, 09:15 AM'
-  },
-  {
-    id: '#FZ-1003',
-    customer: 'Amina Yusuf',
-    amount: 'KES 2,800',
-    status: 'Shipped',
-    date: 'Yesterday'
-  },
-  {
-    id: '#FZ-1002',
-    customer: 'Kevin Mutua',
-    amount: 'KES 8,500',
-    status: 'Delivered',
-    date: 'Oct 24, 2023'
-  },
-  {
-    id: '#FZ-1001',
-    customer: 'Sarah Kamau',
-    amount: 'KES 1,200',
-    status: 'Delivered',
-    date: 'Oct 23, 2023'
-  }];
+type DashboardOrder = {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  placed_at: string;
+  customers?: { full_name: string } | null;
+};
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Paid':
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-none">
-            Paid
-          </Badge>);
+export function DashboardOverview({ navigate, currentUser }: DashboardOverviewProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [storeName, setStoreName] = useState(currentUser.storeName || 'Your Store');
+  const [currencyCode, setCurrencyCode] = useState('KES');
+  const [stats, setStats] = useState({
+    revenue: 0,
+    orders: 0,
+    products: 0,
+    visits: 0
+  });
+  const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
+  const [alerts, setAlerts] = useState<Array<{ id: string; title: string; body: string }>>([]);
 
-      case 'Pending':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">
-            Pending
-          </Badge>);
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      setError('');
 
-      case 'Shipped':
-        return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 border-none">
-            Shipped
-          </Badge>);
+      try {
+        const store = await getCurrentStoreForUser(currentUser);
 
-      case 'Delivered':
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-none">
-            Delivered
-          </Badge>);
+        if (!store) {
+          setRecentOrders([]);
+          setAlerts([]);
+          return;
+        }
 
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+        setStoreName(store.name);
+        setCurrencyCode(store.currency_code);
+
+        const [productsResult, ordersResult] = await Promise.all([
+          supabase
+            .from('products')
+            .select('id, stock_quantity, low_stock_threshold', { count: 'exact' })
+            .eq('store_id', store.id),
+          supabase
+            .from('orders')
+            .select('id, order_number, total_amount, status, placed_at, customers(full_name)', {
+              count: 'exact'
+            })
+            .eq('store_id', store.id)
+            .order('placed_at', { ascending: false })
+            .limit(5)
+        ]);
+
+        if (productsResult.error) {
+          throw productsResult.error;
+        }
+
+        if (ordersResult.error) {
+          throw ordersResult.error;
+        }
+
+        const productRows = productsResult.data ?? [];
+        const orderRows = (ordersResult.data ?? []) as DashboardOrder[];
+
+        const lowStock = productRows.filter(
+          (product) => product.stock_quantity <= Math.max(product.low_stock_threshold ?? 0, 1)
+        );
+
+        const revenue = orderRows.reduce((sum, order) => sum + (order.total_amount ?? 0), 0);
+
+        setStats({
+          revenue,
+          orders: ordersResult.count ?? orderRows.length,
+          products: productsResult.count ?? productRows.length,
+          visits: 0
+        });
+        setRecentOrders(orderRows);
+        setAlerts([
+          ...lowStock.slice(0, 2).map((product) => ({
+            id: product.id,
+            title: 'Low Stock Alert',
+            body: 'One of your products needs restocking soon.'
+          })),
+          {
+            id: 'settings-link',
+            title: 'Review Store Settings',
+            body: 'Check your payment and domain settings before publishing updates.'
+          }
+        ]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void load();
+  }, [currentUser]);
+
+  const greetingName = useMemo(
+    () => currentUser.name.split(' ')[0] || 'there',
+    [currentUser.name]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-3 py-16 text-muted-foreground">
+        <LoaderCircle className="h-5 w-5 animate-spin" />
+        Loading dashboard...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Good morning, James! 👋
+            Welcome back, {greetingName}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Here's what's happening with your store today.
+            Here&apos;s what&apos;s happening with {storeName} today.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('store-builder')}>
+          <Button onClick={() => navigate('store-builder')}>
+            <LayoutTemplate className="mr-2 h-4 w-4" /> Build Website
+          </Button>
+          <Button variant="outline" onClick={() => navigate('live-store')}>
             <Eye className="mr-2 h-4 w-4" /> View Store
           </Button>
-          <Button onClick={() => navigate('products')}>
+          <Button variant="outline" onClick={() => navigate('products')}>
             <Plus className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) =>
-        <motion.div
-          key={i}
-          initial={{
-            opacity: 0,
-            y: 20
-          }}
-          animate={{
-            opacity: 1,
-            y: 0
-          }}
-          transition={{
-            duration: 0.3,
-            delay: i * 0.1
-          }}>
+      <Card className="border-primary/20 bg-gradient-to-r from-orange-50 via-white to-amber-50">
+        <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">
+              Website Builder
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-foreground">
+              Shape your online store visually
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Open the builder to customize the homepage, upload store photos, refine contact and
+              shipping details, and generate a first website draft with the AI assistant.
+            </p>
+          </div>
+          <Button onClick={() => navigate('store-builder')}>
+            <LayoutTemplate className="mr-2 h-4 w-4" /> Open Website Builder
+          </Button>
+        </CardContent>
+      </Card>
 
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[
+          {
+            title: 'Total Revenue',
+            value: formatCurrency(stats.revenue, currencyCode),
+            trend: 'Based on latest orders',
+            icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          },
+          {
+            title: 'Total Orders',
+            value: String(stats.orders),
+            trend: 'Synced from order records',
+            icon: <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+          },
+          {
+            title: 'Products',
+            value: String(stats.products),
+            trend: 'Active catalog rows',
+            icon: <Package className="h-4 w-4 text-muted-foreground" />
+          },
+          {
+            title: 'Store Visits',
+            value: stats.visits ? String(stats.visits) : 'No data yet',
+            trend: 'Add analytics events later',
+            icon: <Users className="h-4 w-4 text-muted-foreground" />
+          }
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.1 }}
+          >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -163,154 +230,88 @@ export function DashboardOverview({ navigate }: DashboardOverviewProps) {
                 {stat.icon}
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  {stat.value}
-                </div>
-                <p
-                className={`text-xs mt-1 ${stat.positive ? 'text-emerald-500' : 'text-amber-500'}`}>
-
-                  {stat.trend}
-                </p>
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <p className="text-xs mt-1 text-muted-foreground">{stat.trend}</p>
               </CardContent>
             </Card>
           </motion.div>
-        )}
+        ))}
       </div>
 
-      {/* Quick Actions */}
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 20
-        }}
-        animate={{
-          opacity: 1,
-          y: 0
-        }}
-        transition={{
-          duration: 0.3,
-          delay: 0.4
-        }}>
-
-        <h2 className="text-lg font-semibold text-foreground mb-4">
-          Quick Actions
-        </h2>
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
+        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card
-            className="hover:bg-muted/50 transition-colors cursor-pointer border-dashed"
-            onClick={() => navigate('products')}>
-
-            <CardContent className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Plus className="h-6 w-6" />
-              </div>
-              <span className="font-medium text-sm">Add Product</span>
-            </CardContent>
-          </Card>
-          <Card
-            className="hover:bg-muted/50 transition-colors cursor-pointer border-dashed"
-            onClick={() => navigate('orders')}>
-
-            <CardContent className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <ShoppingBag className="h-6 w-6" />
-              </div>
-              <span className="font-medium text-sm">View Orders</span>
-            </CardContent>
-          </Card>
-          <Card
-            className="hover:bg-muted/50 transition-colors cursor-pointer border-dashed"
-            onClick={() => navigate('store-builder')}>
-
-            <CardContent className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <LayoutTemplate className="h-6 w-6" />
-              </div>
-              <span className="font-medium text-sm">Customize Store</span>
-            </CardContent>
-          </Card>
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Share2 className="h-6 w-6" />
-              </div>
-              <span className="font-medium text-sm">Share Store</span>
-            </CardContent>
-          </Card>
+          <ActionCard icon={<Plus className="h-6 w-6" />} label="Add Product" onClick={() => navigate('products')} />
+          <ActionCard icon={<ShoppingBag className="h-6 w-6" />} label="View Orders" onClick={() => navigate('orders')} />
+          <ActionCard icon={<LayoutTemplate className="h-6 w-6" />} label="Build Website" onClick={() => navigate('store-builder')} />
+          <ActionCard icon={<Share2 className="h-6 w-6" />} label="Share Store" onClick={() => navigate('live-store')} />
         </div>
       </motion.div>
 
       <motion.div
         className="grid gap-4 md:grid-cols-7"
-        initial={{
-          opacity: 0,
-          y: 20
-        }}
-        animate={{
-          opacity: 1,
-          y: 0
-        }}
-        transition={{
-          duration: 0.3,
-          delay: 0.5
-        }}>
-
-        {/* Recent Orders */}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
         <Card className="md:col-span-5">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Orders</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                You have 5 new orders today.
+                Latest orders synced from the database.
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('orders')}>
-
+            <Button variant="ghost" size="sm" onClick={() => navigate('orders')}>
               View All
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 font-medium rounded-tl-md">
-                      Order ID
-                    </th>
-                    <th className="px-4 py-3 font-medium">Customer</th>
-                    <th className="px-4 py-3 font-medium">Amount</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium rounded-tr-md">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {recentOrders.map((order, i) =>
-                  <tr key={i} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-foreground">
-                        {order.id}
-                      </td>
-                      <td className="px-4 py-3">{order.customer}</td>
-                      <td className="px-4 py-3 font-medium">{order.amount}</td>
-                      <td className="px-4 py-3">
-                        {getStatusBadge(order.status)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {order.date}
-                      </td>
+            {recentOrders.length === 0 ? (
+              <div className="py-10 text-center text-muted-foreground">
+                No orders have been placed yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium rounded-tl-md">Order ID</th>
+                      <th className="px-4 py-3 font-medium">Customer</th>
+                      <th className="px-4 py-3 font-medium">Amount</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium rounded-tr-md">Date</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {recentOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground">
+                          {order.order_number}
+                        </td>
+                        <td className="px-4 py-3">{order.customers?.full_name ?? 'Guest'}</td>
+                        <td className="px-4 py-3 font-medium">
+                          {formatCurrency(order.total_amount, currencyCode)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={order.status} />
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatDateTime(order.placed_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Alerts */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -319,58 +320,63 @@ export function DashboardOverview({ navigate }: DashboardOverviewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
-                <p className="text-sm font-medium text-amber-800">
-                  Low Stock: Kikoy Fabric
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-amber-600">Only 2 left</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100">
-
-                    Restock
-                  </Button>
+            {alerts.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No alerts right now.</div>
+            ) : (
+              alerts.map((alert) => (
+                <div key={alert.id} className="p-3 border rounded-lg bg-muted/20">
+                  <p className="text-sm font-medium text-foreground">{alert.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{alert.body}</p>
+                  {alert.id === 'settings-link' && (
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs mt-3 w-full"
+                      onClick={() => navigate('settings')}
+                    >
+                      Go to Settings
+                    </Button>
+                  )}
                 </div>
-              </div>
-              <div className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
-                <p className="text-sm font-medium text-amber-800">
-                  Low Stock: Maasai Beads
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-amber-600">
-                    0 left (Out of stock)
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100">
-
-                    Restock
-                  </Button>
-                </div>
-              </div>
-              <div className="p-3 border border-blue-200 bg-blue-50 rounded-lg">
-                <p className="text-sm font-medium text-blue-800">
-                  Complete Setup
-                </p>
-                <p className="text-xs text-blue-600 mt-1 mb-2">
-                  Connect your custom domain to build trust.
-                </p>
-                <Button
-                  size="sm"
-                  className="h-7 text-xs w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => navigate('settings')}>
-
-                  Go to Settings
-                </Button>
-              </div>
-            </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </motion.div>
-    </div>);
+    </div>
+  );
+}
 
+function ActionCard({
+  icon,
+  label,
+  onClick
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Card className="hover:bg-muted/50 transition-colors cursor-pointer border-dashed" onClick={onClick}>
+      <CardContent className="flex flex-col items-center justify-center py-6 gap-2">
+        <div className="p-3 bg-primary/10 rounded-full text-primary">{icon}</div>
+        <span className="font-medium text-sm">{label}</span>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === 'paid') {
+    return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-none">Paid</Badge>;
+  }
+  if (status === 'pending') {
+    return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none">Pending</Badge>;
+  }
+  if (status === 'shipped') {
+    return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 border-none">Shipped</Badge>;
+  }
+  if (status === 'delivered') {
+    return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-none">Delivered</Badge>;
+  }
+  return <Badge variant="outline">{status}</Badge>;
 }

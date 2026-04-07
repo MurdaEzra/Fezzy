@@ -16,6 +16,9 @@ import { PricingPage } from './components/PricingPage';
 import { FaqPage } from './components/FaqPage';
 import { TermsPage } from './components/TermsPage';
 import { PrivacyPage } from './components/PrivacyPage';
+import { supabase } from './contexts/supabaseClient';
+import { getSessionFromSupabaseUser } from './lib/auth';
+import { ensureStoreForUser } from './lib/store';
 
 export type PageType =
   | 'landing'
@@ -38,6 +41,7 @@ export type PageType =
 export type UserRole = 'merchant' | 'admin' | 'root-admin';
 
 export interface SessionUser {
+  id: string;
   email: string;
   name: string;
   role: UserRole;
@@ -59,6 +63,7 @@ const merchantPages: PageType[] = [
 export function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('landing');
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   const accessMap = useMemo(
     () => ({
@@ -81,21 +86,102 @@ export function App() {
   };
 
   const handleLogout = () => {
+    void supabase.auth.signOut();
     setSessionUser(null);
     setCurrentPage('landing');
     window.scrollTo(0, 0);
   };
 
   useEffect(() => {
+    let isMounted = true;
+
+    const initializeSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        console.error('Failed to restore Supabase session:', error.message);
+        setSessionUser(null);
+        setIsAuthReady(true);
+        return;
+      }
+
+      if (data.session?.user) {
+        const nextSession = getSessionFromSupabaseUser(data.session.user);
+        const currentStore = await ensureStoreForUser(nextSession.user);
+        setSessionUser(nextSession.user);
+        if (currentStore) {
+          setSessionUser({
+            ...nextSession.user,
+            storeName: currentStore.name,
+            storeSubdomain: currentStore.subdomain,
+            plan: currentStore.plans?.name ?? nextSession.user.plan
+          });
+        } else {
+          setSessionUser(nextSession.user);
+        }
+        setCurrentPage((current) =>
+          current === 'landing' || current === 'login' || current === 'signup' ?
+            nextSession.targetPage :
+            current
+        );
+      } else {
+        setSessionUser(null);
+      }
+
+      setIsAuthReady(true);
+    };
+
+    void initializeSession();
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void (async () => {
+        if (session?.user) {
+          const nextSession = getSessionFromSupabaseUser(session.user);
+          const currentStore = await ensureStoreForUser(nextSession.user);
+          setSessionUser(
+            currentStore ?
+              {
+                ...nextSession.user,
+                storeName: currentStore.name,
+                storeSubdomain: currentStore.subdomain,
+                plan: currentStore.plans?.name ?? nextSession.user.plan
+              } :
+              nextSession.user
+          );
+        } else {
+          setSessionUser(null);
+        }
+      })();
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthReady) {
+      return;
+    }
+
     const safePage = getAuthorizedPage(currentPage, sessionUser, accessMap);
     if (safePage !== currentPage) {
       setCurrentPage(safePage);
     }
-  }, [accessMap, currentPage, sessionUser]);
+  }, [accessMap, currentPage, isAuthReady, sessionUser]);
 
   let content: React.ReactNode;
 
-  if (currentPage === 'landing') {
+  if (!isAuthReady) {
+    content = null;
+  } else if (currentPage === 'landing') {
     content = <LandingPage navigate={navigate} sessionUser={sessionUser} />;
   } else if (currentPage === 'pricing') {
     content = <PricingPage navigate={navigate} sessionUser={sessionUser} />;
@@ -130,7 +216,7 @@ export function App() {
       />
     );
   } else if (currentPage === 'live-store') {
-    content = <LiveStorePage navigate={navigate} />;
+    content = <LiveStorePage navigate={navigate} currentUser={sessionUser} />;
   } else if (sessionUser) {
     content = (
       <DashboardLayout
@@ -139,14 +225,16 @@ export function App() {
         currentUser={sessionUser}
         onLogout={handleLogout}
       >
-        {currentPage === 'dashboard' && <DashboardOverview navigate={navigate} />}
-        {currentPage === 'products' && <ProductsPage />}
-        {currentPage === 'orders' && <OrdersPage />}
-        {currentPage === 'analytics' && <AnalyticsPage />}
-        {currentPage === 'store-builder' && (
-          <StoreBuilderPage navigate={navigate} />
+        {currentPage === 'dashboard' && (
+          <DashboardOverview navigate={navigate} currentUser={sessionUser} />
         )}
-        {currentPage === 'settings' && <SettingsPage />}
+        {currentPage === 'products' && <ProductsPage currentUser={sessionUser} />}
+        {currentPage === 'orders' && <OrdersPage currentUser={sessionUser} />}
+        {currentPage === 'analytics' && <AnalyticsPage currentUser={sessionUser} />}
+        {currentPage === 'store-builder' && (
+          <StoreBuilderPage navigate={navigate} currentUser={sessionUser} />
+        )}
+        {currentPage === 'settings' && <SettingsPage currentUser={sessionUser} />}
       </DashboardLayout>
     );
   } else {
