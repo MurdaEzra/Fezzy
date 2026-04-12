@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bot,
+  FileText,
   Globe,
+  Image as ImageIcon,
   ImagePlus,
   LayoutTemplate,
   LoaderCircle,
   Monitor,
   Palette,
+  Settings,
   Smartphone,
   Sparkles,
   Type
@@ -152,6 +155,7 @@ const templateOptions: TemplateOption[] = [
 
 export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProps) {
   const [store, setStore] = useState<StoreRecord | null>(null);
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'pages' | 'media' | 'ai'>('identity');
   const [theme, setTheme] = useState<StoreThemeRow | null>(null);
   const [pages, setPages] = useState<StorePageRow[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -613,100 +617,158 @@ export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProp
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-[420px] shrink-0 overflow-y-auto border-r border-border bg-card">
-          <div className="space-y-6 p-4">
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Store Identity</CardTitle>
-                <CardDescription>
-                  Edit your merchant basics, contact details, and storefront status.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Field label="Brand Name">
-                  <Input
-                    value={store.name}
-                    onChange={(e) =>
-                      setStore((current) => (current ? { ...current, name: e.target.value } : current))
-                    }
-                  />
-                </Field>
-                <Field label="Tagline">
-                  <Input
-                    value={theme.tagline ?? ''}
-                    onChange={(e) =>
-                      setTheme((current) => (current ? { ...current, tagline: e.target.value } : current))
-                    }
-                  />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Contact Email">
-                    <Input
-                      value={store.contact_email ?? ''}
-                      onChange={(e) =>
-                        setStore((current) =>
-                          current ? { ...current, contact_email: e.target.value } : current
-                        )
-                      }
-                    />
-                  </Field>
-                  <Field label="Contact Phone">
-                    <Input
-                      value={store.contact_phone ?? ''}
-                      onChange={(e) =>
-                        setStore((current) =>
-                          current ? { ...current, contact_phone: e.target.value } : current
-                        )
-                      }
-                    />
-                  </Field>
-                </div>
-                <Field label="Business Address">
-                  <Input
-                    value={store.business_address ?? ''}
-                    onChange={(e) =>
-                      setStore((current) =>
-                        current ? { ...current, business_address: e.target.value } : current
-                      )
-                    }
-                  />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Country">
-                    <Input
-                      value={store.country ?? ''}
-                      onChange={(e) =>
-                        setStore((current) => (current ? { ...current, country: e.target.value } : current))
-                      }
-                    />
-                  </Field>
-                  <Field label="Currency">
-                    <Input
-                      value={store.currency_code}
-                      onChange={(e) =>
-                        setStore((current) =>
-                          current ? { ...current, currency_code: e.target.value.toUpperCase() } : current
-                        )
-                      }
-                    />
-                  </Field>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Primary Navigation Sidebar */}
+        <div className="flex w-[80px] shrink-0 flex-col items-center gap-4 border-r border-border bg-slate-50 py-6">
+          <button
+            onClick={() => setActiveTab('identity')}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+              activeTab === 'identity' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'
+            }`}
+            title="Store Identity"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setActiveTab('theme')}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+              activeTab === 'theme' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'
+            }`}
+            title="Theme & Style"
+          >
+            <Palette className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setActiveTab('pages')}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+              activeTab === 'pages' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'
+            }`}
+            title="Pages"
+          >
+            <FileText className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setActiveTab('media')}
+            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+              activeTab === 'media' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'
+            }`}
+            title="Media Library"
+          >
+            <ImageIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setActiveTab('ai')}
+            className={`mt-auto flex h-12 w-12 items-center justify-center rounded-xl transition-all ${
+              activeTab === 'ai' ? 'bg-orange-500 text-white shadow-[0_4px_12px_rgba(249,115,22,0.3)]' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'
+            }`}
+            title="AI Site Assistant"
+          >
+            <Bot className="h-5 w-5" />
+          </button>
+        </div>
 
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Look & Layout</CardTitle>
-                <CardDescription>Pick a stronger website direction, then refine it.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        {/* Properties Panel */}
+        <div className="w-[340px] shrink-0 overflow-y-auto border-r border-border bg-card">
+          <div className="p-6">
+            {activeTab === 'identity' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Store Identity</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Edit your merchant basics and contact details.</p>
+                </div>
+                <div className="space-y-4">
+                  <Field label="Brand Name">
+                    <Input
+                      value={store.name}
+                      onChange={(e) =>
+                        setStore((current) => (current ? { ...current, name: e.target.value } : current))
+                      }
+                    />
+                  </Field>
+                  <Field label="Tagline">
+                    <Input
+                      value={theme.tagline ?? ''}
+                      onChange={(e) =>
+                        setTheme((current) => (current ? { ...current, tagline: e.target.value } : current))
+                      }
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Contact Email">
+                      <Input
+                        value={store.contact_email ?? ''}
+                        onChange={(e) =>
+                          setStore((current) =>
+                            current ? { ...current, contact_email: e.target.value } : current
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field label="Contact Phone">
+                      <Input
+                        value={store.contact_phone ?? ''}
+                        onChange={(e) =>
+                          setStore((current) =>
+                            current ? { ...current, contact_phone: e.target.value } : current
+                          )
+                        }
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Business Address">
+                    <Input
+                      value={store.business_address ?? ''}
+                      onChange={(e) =>
+                        setStore((current) =>
+                          current ? { ...current, business_address: e.target.value } : current
+                        )
+                      }
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Country">
+                      <Input
+                        value={store.country ?? ''}
+                        onChange={(e) =>
+                          setStore((current) => (current ? { ...current, country: e.target.value } : current))
+                        }
+                      />
+                    </Field>
+                    <Field label="Currency">
+                      <Input
+                        value={store.currency_code}
+                        onChange={(e) =>
+                          setStore((current) =>
+                            current ? { ...current, currency_code: e.target.value.toUpperCase() } : current
+                          )
+                        }
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'theme' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Look & Layout</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Pick a stronger website direction, then refine it.</p>
+                </div>
+                
+                <div className="rounded-[20px] border border-border bg-muted/20 p-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Active Template</p>
+                  <p className="text-sm font-semibold text-foreground">{activeTemplate.name}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">{activeTemplate.mood}</p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{activeTemplate.note}</p>
+                </div>
+
                 <div className="grid gap-3">
                   {templateOptions.map((template) => (
                     <button
                       key={template.code}
                       type="button"
                       onClick={() => applyTemplatePreset(template.code, setTheme)}
-                      className={`rounded-[24px] border p-4 text-left transition ${
+                      className={`rounded-2xl border p-4 text-left transition ${
                         template.code === theme.template_code
                           ? 'border-primary bg-primary/5 shadow-sm'
                           : 'border-border bg-background hover:border-primary/40'
@@ -715,47 +777,28 @@ export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProp
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold text-foreground">{template.name}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {template.mood}
-                          </p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">{template.mood}</p>
                         </div>
                         <div className="flex gap-2">
-                          <span
-                            className="h-4 w-4 rounded-full border border-black/10"
-                            style={{ backgroundColor: template.primary }}
-                          />
-                          <span
-                            className="h-4 w-4 rounded-full border border-black/10"
-                            style={{ backgroundColor: template.accent }}
-                          />
+                          <span className="h-4 w-4 rounded-full border border-black/10" style={{ backgroundColor: template.primary }} />
+                          <span className="h-4 w-4 rounded-full border border-black/10" style={{ backgroundColor: template.accent }} />
                         </div>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                        {template.note}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">{template.inspiration}</p>
                     </button>
                   ))}
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Primary Color">
                     <Input
                       value={theme.primary_color ?? ''}
-                      onChange={(e) =>
-                        setTheme((current) =>
-                          current ? { ...current, primary_color: e.target.value } : current
-                        )
-                      }
+                      onChange={(e) => setTheme((current) => current ? { ...current, primary_color: e.target.value } : current)}
                     />
                   </Field>
                   <Field label="Accent Color">
                     <Input
                       value={theme.accent_color ?? ''}
-                      onChange={(e) =>
-                        setTheme((current) =>
-                          current ? { ...current, accent_color: e.target.value } : current
-                        )
-                      }
+                      onChange={(e) => setTheme((current) => current ? { ...current, accent_color: e.target.value } : current)}
                     />
                   </Field>
                 </div>
@@ -763,103 +806,33 @@ export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProp
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={theme.font ?? templateOptions[0].font}
-                    onChange={(e) =>
-                      setTheme((current) => (current ? { ...current, font: e.target.value } : current))
-                    }
+                    onChange={(e) => setTheme((current) => (current ? { ...current, font: e.target.value } : current))}
                   >
                     {templateOptions.map((template) => (
-                      <option key={template.code} value={template.font}>
-                        {template.font}
-                      </option>
+                      <option key={template.code} value={template.font}>{template.font}</option>
                     ))}
                   </select>
                 </Field>
-              </CardContent>
-            </Card>
+              </div>
+            )}
 
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Homepage Copy</CardTitle>
-                <CardDescription>Customize the messaging shoppers see first.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Field label="Announcement">
-                  <Input
-                    value={theme.settings?.announcement_text ?? ''}
-                    onChange={(e) => updateThemeSetting(setTheme, 'announcement_text', e.target.value)}
-                  />
-                </Field>
-                <Field label="Hero Eyebrow">
-                  <Input
-                    value={theme.settings?.hero_eyebrow ?? ''}
-                    onChange={(e) => updateThemeSetting(setTheme, 'hero_eyebrow', e.target.value)}
-                  />
-                </Field>
-                <Field label="Hero Title">
-                  <Input
-                    value={theme.settings?.hero_title ?? ''}
-                    onChange={(e) => updateThemeSetting(setTheme, 'hero_title', e.target.value)}
-                  />
-                </Field>
-                <Field label="Hero Subtitle">
-                  <textarea
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={theme.settings?.hero_subtitle ?? ''}
-                    onChange={(e) => updateThemeSetting(setTheme, 'hero_subtitle', e.target.value)}
-                  />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Hero CTA">
-                    <Input
-                      value={theme.settings?.hero_cta ?? ''}
-                      onChange={(e) => updateThemeSetting(setTheme, 'hero_cta', e.target.value)}
-                    />
-                  </Field>
-                  <Field label="Featured Title">
-                    <Input
-                      value={theme.settings?.featured_title ?? ''}
-                      onChange={(e) =>
-                        updateThemeSetting(setTheme, 'featured_title', e.target.value)
-                      }
-                    />
-                  </Field>
+            {activeTab === 'pages' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Content & Pages</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Select a page to edit its specific details.</p>
                 </div>
-                <Field label="Featured Description">
-                  <textarea
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={theme.settings?.featured_description ?? ''}
-                    onChange={(e) =>
-                      updateThemeSetting(setTheme, 'featured_description', e.target.value)
-                    }
-                  />
-                </Field>
-                <Field label="Footer Tagline">
-                  <Input
-                    value={theme.settings?.footer_tagline ?? ''}
-                    onChange={(e) => updateThemeSetting(setTheme, 'footer_tagline', e.target.value)}
-                  />
-                </Field>
-              </CardContent>
-            </Card>
 
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Page Details</CardTitle>
-                <CardDescription>
-                  Refine about, contact, shipping, and collection-specific content.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {pages.map((page) => (
                     <button
                       key={page.page_type}
                       type="button"
                       onClick={() => setActivePage(page.page_type)}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                      className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                         activePage === page.page_type
                           ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
                       {capitalize(page.page_type)}
@@ -868,82 +841,53 @@ export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProp
                 </div>
 
                 {selectedPage && (
-                  <div className="space-y-4 rounded-2xl border border-border p-4">
+                  <div className="space-y-4 rounded-2xl border border-border bg-slate-50/50 p-4">
                     <Field label="Page Title">
                       <Input
                         value={selectedPage.title}
-                        onChange={(e) =>
-                          updatePage(setPages, selectedPage.page_type, { title: e.target.value })
-                        }
+                        onChange={(e) => updatePage(setPages, selectedPage.page_type, { title: e.target.value })}
                       />
                     </Field>
                     <Field label="Page Description">
                       <textarea
                         className="flex min-h-[90px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         value={selectedPage.description ?? ''}
-                        onChange={(e) =>
-                          updatePage(setPages, selectedPage.page_type, {
-                            description: e.target.value
-                          })
-                        }
+                        onChange={(e) => updatePage(setPages, selectedPage.page_type, { description: e.target.value })}
                       />
                     </Field>
 
                     {selectedPage.page_type === 'shop' && (
-                      <>
+                      <div className="space-y-4 pt-2">
                         <Field label="Collection Badge">
                           <Input
                             value={selectedPage.content?.collection_badge ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'collection_badge',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'collection_badge', e.target.value)}
                           />
                         </Field>
                         <Field label="Collection Intro">
                           <textarea
                             className="flex min-h-[90px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={selectedPage.content?.collection_intro ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'collection_intro',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'collection_intro', e.target.value)}
                           />
                         </Field>
-                      </>
+                      </div>
                     )}
 
                     {selectedPage.page_type === 'about' && (
-                      <>
+                      <div className="space-y-4 pt-2">
                         <Field label="About Heading">
                           <Input
                             value={theme.settings?.about_heading ?? ''}
-                            onChange={(e) =>
-                              updateThemeSetting(setTheme, 'about_heading', e.target.value)
-                            }
+                            onChange={(e) => updateThemeSetting(setTheme, 'about_heading', e.target.value)}
                           />
                         </Field>
                         <Field label="About Story">
                           <textarea
                             className="flex min-h-[110px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={
-                              selectedPage.content?.story_body ?? theme.settings?.about_body ?? ''
-                            }
+                            value={selectedPage.content?.story_body ?? theme.settings?.about_body ?? ''}
                             onChange={(e) => {
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'story_body',
-                                e.target.value
-                              );
+                              updatePageContent(setPages, selectedPage.page_type, 'story_body', e.target.value);
                               updateThemeSetting(setTheme, 'about_body', e.target.value);
                             }}
                           />
@@ -951,183 +895,175 @@ export function StoreBuilderPage({ navigate, currentUser }: StoreBuilderPageProp
                         <Field label="Location Landmark">
                           <Input
                             value={selectedPage.content?.location_landmark ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'location_landmark',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'location_landmark', e.target.value)}
                           />
                         </Field>
-                      </>
+                      </div>
                     )}
 
                     {selectedPage.page_type === 'contact' && (
-                      <>
+                      <div className="space-y-4 pt-2">
                         <Field label="Contact Heading">
                           <Input
                             value={theme.settings?.contact_heading ?? ''}
-                            onChange={(e) =>
-                              updateThemeSetting(setTheme, 'contact_heading', e.target.value)
-                            }
+                            onChange={(e) => updateThemeSetting(setTheme, 'contact_heading', e.target.value)}
                           />
                         </Field>
                         <Field label="Shipping Zones">
                           <Input
                             value={selectedPage.content?.shipping_zones ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'shipping_zones',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'shipping_zones', e.target.value)}
                           />
                         </Field>
                         <Field label="Shipping Timeline">
                           <Input
                             value={selectedPage.content?.shipping_timeline ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'shipping_timeline',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'shipping_timeline', e.target.value)}
                           />
                         </Field>
                         <Field label="Shipping Notes">
                           <textarea
                             className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={selectedPage.content?.shipping_notes ?? ''}
-                            onChange={(e) =>
-                              updatePageContent(
-                                setPages,
-                                selectedPage.page_type,
-                                'shipping_notes',
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updatePageContent(setPages, selectedPage.page_type, 'shipping_notes', e.target.value)}
                           />
                         </Field>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
 
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Media Library</CardTitle>
-                <CardDescription>
-                  Upload brand, location, and product images through secure signed uploads.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <UploadRow
-                  label="Logo"
-                  image={logoImage}
-                  onFile={(file) => void handleAssetUpload('logo', file)}
-                />
-                <UploadRow
-                  label="Hero Image"
-                  image={heroImage}
-                  onFile={(file) => void handleAssetUpload('hero', file)}
-                />
-                <UploadRow
-                  label="About Image"
-                  image={aboutImage}
-                  onFile={(file) => void handleAssetUpload('about', file)}
-                />
-                {[0, 1].map((slot) => (
-                  <UploadRow
-                    key={slot}
-                    label={`Gallery Image ${slot + 1}`}
-                    image={galleryImages[slot] ?? null}
-                    onFile={(file) => void handleAssetUpload('gallery', file, slot)}
-                  />
-                ))}
-                {products.slice(0, 4).map((product) => (
-                  <UploadRow
-                    key={product.id}
-                    label={`Product: ${product.name}`}
-                    image={product.product_images?.[0]?.public_url ?? null}
-                    onFile={(file) => void handleProductImageUpload(product.id, file)}
-                  />
-                ))}
-              </CardContent>
-            </Card>
+                <div className="pt-6 border-t border-border space-y-4">
+                  <h3 className="text-sm font-semibold">Homepage Copy</h3>
+                  <Field label="Announcement">
+                    <Input
+                      value={theme.settings?.announcement_text ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'announcement_text', e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Hero Eyebrow">
+                    <Input
+                      value={theme.settings?.hero_eyebrow ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'hero_eyebrow', e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Hero Title">
+                    <Input
+                      value={theme.settings?.hero_title ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'hero_title', e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Hero Subtitle">
+                    <textarea
+                      className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={theme.settings?.hero_subtitle ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'hero_subtitle', e.target.value)}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Hero CTA">
+                      <Input
+                        value={theme.settings?.hero_cta ?? ''}
+                        onChange={(e) => updateThemeSetting(setTheme, 'hero_cta', e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Featured Title">
+                      <Input
+                        value={theme.settings?.featured_title ?? ''}
+                        onChange={(e) => updateThemeSetting(setTheme, 'featured_title', e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Featured Description">
+                    <textarea
+                      className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={theme.settings?.featured_description ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'featured_description', e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Footer Tagline">
+                    <Input
+                      value={theme.settings?.footer_tagline ?? ''}
+                      onChange={(e) => updateThemeSetting(setTheme, 'footer_tagline', e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+            )}
 
-            <Card className="rounded-3xl border-primary/20 bg-gradient-to-br from-orange-50 to-white">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Bot className="h-4 w-4 text-primary" /> AI Site Assistant
-                </CardTitle>
-                <CardDescription>
-                  Describe the brand, vibe, customers, and products. The assistant will draft a
-                  stronger starting website inside the builder.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <textarea
-                  className="flex min-h-[140px] w-full rounded-2xl border border-input bg-white px-4 py-3 text-sm"
-                  placeholder="Example: Modern skincare store in Nairobi for busy professionals. Clean visuals, premium but warm tone, highlight same-day delivery and dermatologist-approved essentials."
-                  value={aiBrief}
-                  onChange={(e) => setAiBrief(e.target.value)}
-                />
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={generateAiDraft}
-                  disabled={isGeneratingAi}
-                >
-                  {isGeneratingAi ? (
-                    <>
-                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                      Drafting website...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate AI Draft
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  This assistant works inside the builder by generating editable draft copy and a
-                  matching design direction from the merchant brief.
-                </p>
-              </CardContent>
-            </Card>
+            {activeTab === 'media' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Media Library</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Upload brand, location, and product images.</p>
+                </div>
+                <div className="space-y-3">
+                  <UploadRow label="Logo" image={logoImage} onFile={(file) => void handleAssetUpload('logo', file)} />
+                  <UploadRow label="Hero Image" image={heroImage} onFile={(file) => void handleAssetUpload('hero', file)} />
+                  <UploadRow label="About Image" image={aboutImage} onFile={(file) => void handleAssetUpload('about', file)} />
+                  {[0, 1].map((slot) => (
+                    <UploadRow
+                      key={slot}
+                      label={`Gallery Image ${slot + 1}`}
+                      image={galleryImages[slot] ?? null}
+                      onFile={(file) => void handleAssetUpload('gallery', file, slot)}
+                    />
+                  ))}
+                  {products.slice(0, 4).map((product) => (
+                    <UploadRow
+                      key={product.id}
+                      label={`Product: ${product.name}`}
+                      image={product.product_images?.[0]?.public_url ?? null}
+                      onFile={(file) => void handleProductImageUpload(product.id, file)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-            <Card className="rounded-3xl">
-              <CardHeader>
-                <CardTitle className="text-base">Active Template</CardTitle>
-                <CardDescription>
-                  The live preview is currently using this visual direction.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="rounded-[24px] border border-border bg-muted/20 p-4">
-                  <p className="text-sm font-semibold text-foreground">{activeTemplate.name}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    {activeTemplate.mood}
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    {activeTemplate.note}
+            {activeTab === 'ai' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+                <div>
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                    <Bot className="h-5 w-5 text-orange-500" /> AI Site Assistant
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Describe the brand and products. The assistant will draft a stronger starting website.
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-4">
+                  <textarea
+                    className="flex min-h-[160px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                    placeholder="Example: Modern skincare store in Nairobi for busy professionals. Clean visuals, premium but warm tone, highlight same-day delivery."
+                    value={aiBrief}
+                    onChange={(e) => setAiBrief(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 border-none shadow-md"
+                    onClick={generateAiDraft}
+                    disabled={isGeneratingAi}
+                  >
+                    {isGeneratingAi ? (
+                      <>
+                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin text-white" />
+                        <span className="text-white">Drafting website...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4 text-white" />
+                        <span className="text-white">Generate AI Draft</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-muted/30 p-4 md:p-8">
+        {/* Canvas Area */}
+        <div className="flex-1 overflow-y-auto bg-slate-100/60 p-4 md:p-8 flex justify-center items-start">
           <StorePreview
             store={store}
             theme={theme}

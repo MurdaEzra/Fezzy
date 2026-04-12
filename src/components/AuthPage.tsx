@@ -2,25 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
-  CheckCircle2,
-  KeyRound,
   LoaderCircle,
-  MapPin,
   Phone,
-  ShieldCheck,
   Store,
   Truck,
   Wallet
 } from 'lucide-react';
 import { Button } from './ui/Button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from './ui/Card';
+
 import { Input } from './ui/Input';
 import type { PageType, SessionUser } from '../App';
 import { supabase } from '../contexts/supabaseClient';
@@ -502,737 +491,573 @@ export function AuthPage({
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_35%),linear-gradient(180deg,_#fff8f5_0%,_#ffffff_48%,_#f8fafc_100%)] px-4 py-8">
-      {isLogin ? (
-        <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center">
-          <motion.section
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="w-full rounded-[36px] border border-white/60 bg-white/85 p-6 shadow-2xl shadow-orange-200/40 backdrop-blur lg:p-10"
-          >
-            <button
-              onClick={() => navigate('landing')}
-              className="inline-flex items-center text-sm text-slate-500 transition-colors hover:text-slate-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to home
-            </button>
-
-            <div className="mt-8 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-primary p-3 text-primary-foreground shadow-lg shadow-primary/30">
-                    <Store className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold tracking-tight text-slate-950">FEZZY</p>
-                    <p className="text-sm text-slate-500">Secure commerce access for merchants</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-700">
-                    Login
-                  </p>
-                  <h1 className="max-w-lg text-4xl font-bold leading-tight text-slate-950">
-                    Sign in from one simple workspace.
-                  </h1>
-                  <p className="max-w-md text-base leading-7 text-slate-600">
-                    Sign in with your Supabase-backed account to access your FEZZY workspace.
-                  </p>
-                </div>
-
-                <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-sm font-semibold text-slate-900">Quick access</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Use your account email and password to open your merchant, admin, or root
-                    admin workspace.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 lg:p-8">
-                <div className="mb-6 text-center">
-                  <h2 className="text-3xl font-semibold text-slate-950">Welcome back</h2>
-                  <p className="mt-2 text-base text-slate-600">
-                    Sign in with your account email and password to access your workspace.
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-foreground">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@business.com"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium text-foreground">
-                      Password
-                    </label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                    />
-                  </div>
-
-                  <AnimatePresence>
-                    {success && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
-                      >
-                        {success}
-                      </motion.div>
-                    )}
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-                      >
-                        {error}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        <KeyRound className="mr-2 h-4 w-4" />
-                        Sign in
-                      </>
-                    )}
-                  </Button>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-muted-foreground">
-                  Need a merchant account?{' '}
-                  <button
-                    type="button"
-                    className="font-semibold text-primary hover:underline"
-                    onClick={() => {
-                      setIsLogin(false);
-                      setSignupStep(0);
-                      setError('');
-                    }}
-                  >
-                    Create a store
-                  </button>
-                </p>
-              </div>
-            </div>
-          </motion.section>
+    <div className="flex min-h-screen bg-slate-950 font-sans">
+      {/* Left Premium Branding Section */}
+      <div className="relative hidden w-[45%] flex-col justify-between overflow-hidden p-10 lg:flex xl:p-14">
+        {/* Abstract Background Elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute -left-[20%] -top-[20%] h-[70%] w-[70%] rounded-full bg-orange-600/20 blur-[120px]" />
+          <div className="absolute -bottom-[20%] -right-[20%] h-[70%] w-[70%] rounded-full bg-emerald-600/20 blur-[120px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
         </div>
-      ) : (
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <motion.section
-            initial={{ opacity: 0, x: -28 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.45 }}
-            className="rounded-[32px] border border-white/60 bg-slate-950 px-7 py-8 text-slate-50 shadow-2xl shadow-orange-200/40 lg:px-10 lg:py-12"
+
+        {/* Brand Header */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 p-3 text-white shadow-lg shadow-orange-500/30">
+              <Store className="h-7 w-7" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight text-white">FEZZY</p>
+          </div>
+        </div>
+
+        {/* Marketing Hero */}
+        <div className="relative z-10 mb-10 space-y-8">
+          <h1 className="text-5xl font-extrabold leading-[1.15] text-white">
+            Scale your commerce operations <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">with elegance.</span>
+          </h1>
+          <p className="max-w-md text-lg leading-relaxed text-slate-300">
+            Join thousands of premium merchants who trust FEZZY to manage their digital storefronts, orchestrate deliveries, and process payments securely.
+          </p>
+          
+          <div className="flex items-center gap-4 pt-4">
+            <div className="flex -space-x-3">
+              {[1, 2, 3, 4].map((i) => (
+                 <div key={i} className={`h-12 w-12 rounded-full border-2 border-slate-950 bg-slate-800 ${
+                   i === 1 ? 'bg-[url("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop")]' : 
+                   i === 2 ? 'bg-[url("https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop")]' : 
+                   i === 3 ? 'bg-[url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop")]' : 
+                   'bg-[url("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop")]'
+                 } bg-cover`} />
+              ))}
+            </div>
+            <p className="text-sm font-medium text-slate-300">
+              Join <span className="font-bold text-white">10,000+</span> merchants
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Form Container */}
+      <div className="relative flex w-full flex-col bg-white overflow-y-auto lg:w-[55%] lg:rounded-l-[40px] lg:shadow-[0_0_40px_rgba(0,0,0,0.2)]">
+        
+        {/* Mobile Header & Desktop Back Button */}
+        <div className="flex items-center justify-between p-6 lg:absolute lg:right-10 lg:top-10 lg:p-0 lg:z-20">
+          <div className="flex items-center gap-2 lg:hidden">
+            <div className="rounded-xl bg-primary p-2 text-primary-foreground">
+              <Store className="h-5 w-5" />
+            </div>
+            <p className="text-xl font-bold tracking-tight text-slate-950">FEZZY</p>
+          </div>
+          <button
+            onClick={() => navigate('landing')}
+            className="group flex items-center text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
           >
-            <button
-              onClick={() => navigate('landing')}
-              className="mb-10 inline-flex items-center text-sm text-slate-300 transition-colors hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to home
-            </button>
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Back to home
+          </button>
+        </div>
 
-            <div className="mb-8 flex items-center gap-3">
-              <div className="rounded-2xl bg-primary p-3 text-primary-foreground shadow-lg shadow-primary/30">
-                <Store className="h-7 w-7" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold tracking-tight">FEZZY</p>
-                <p className="text-sm text-slate-300">
-                  Guided merchant onboarding for commerce teams
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <p className="mb-3 inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">
-                  Merchant Setup
-                </p>
-                <h1 className="max-w-xl text-4xl font-bold leading-tight text-white">
-                  Launch the store in guided steps instead of one long form.
-                </h1>
-                <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
-                  We’ll capture verification details, payout wallet info, shipping coverage, store
-                  location, and brand photos before the merchant lands in the dashboard.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {signupSteps.map((step, index) => {
-                  const isActive = step.id === signupStep;
-                  const isComplete = signupStep > step.id;
-
-                  return (
-                    <div
-                      key={step.id}
-                      className={`rounded-[24px] border px-4 py-4 transition ${
-                        isActive
-                          ? 'border-orange-300 bg-white/10'
-                          : 'border-white/10 bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-full ${
-                            isComplete
-                              ? 'bg-emerald-500/20 text-emerald-200'
-                              : isActive
-                                ? 'bg-orange-400/20 text-orange-200'
-                                : 'bg-white/10 text-slate-300'
-                          }`}
-                        >
-                          {isComplete ? <CheckCircle2 className="h-4 w-4" /> : step.icon}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-white">
-                            {index + 1}. {step.title}
-                          </p>
-                          <p className="mt-1 text-sm leading-6 text-slate-300">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FeatureCard
-                  icon={<ShieldCheck className="h-5 w-5 text-emerald-300" />}
-                  title="Verification-ready onboarding"
-                  body="Capture email or phone verification preference while collecting merchant contact details."
-                />
-                <FeatureCard
-                  icon={<MapPin className="h-5 w-5 text-amber-300" />}
-                  title="Location-aware storefront"
-                  body="Use address, delivery zones, and store imagery to prepare the storefront from day one."
-                />
-              </div>
-            </div>
-          </motion.section>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key="signup"
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-              transition={{ duration: 0.28 }}
-            >
-              <Card className="border-border/60 shadow-2xl shadow-slate-200/70">
-                <CardHeader className="space-y-4">
-                  <div className="flex rounded-full bg-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsLogin(true);
-                        setError('');
-                      }}
-                      className="flex-1 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition-all hover:text-foreground"
-                    >
-                      Login
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsLogin(false);
-                        setError('');
-                      }}
-                      className="flex-1 rounded-full bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all"
-                    >
-                      Sign up
-                    </button>
+        {/* Form Area */}
+        <div className="flex flex-1 items-center justify-center p-6 sm:p-10 lg:p-16">
+          <div className="w-full max-w-md">
+            <AnimatePresence mode="wait">
+              {isLogin ? (
+                /* --- LOGIN FLOW --- */
+                <motion.div
+                  key="login-flow"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-8"
+                >
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-950">Welcome back</h2>
+                    <p className="mt-2 text-slate-500">Sign in to your merchant workspace.</p>
                   </div>
 
-                  <div className="text-center">
-                    <CardTitle className="text-3xl">Create your merchant account</CardTitle>
-                    <CardDescription className="mt-2 text-base">
-                      Step {signupStep + 1} of {signupSteps.length}: {signupSteps[signupStep].title}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-
-                <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    {isStepTransitioning ? (
-                      <motion.div
-                        key={`loading-step-${signupStep}`}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="flex min-h-[340px] flex-col items-center justify-center rounded-[28px] border border-border bg-muted/20 px-6 text-center"
-                      >
-                        <div className="relative flex h-16 w-16 items-center justify-center">
-                          <span className="absolute inset-0 rounded-full border-4 border-primary/15" />
-                          <span className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-primary border-r-primary" />
-                          <Store className="h-6 w-6 text-primary" />
-                        </div>
-                        <p className="mt-6 text-lg font-semibold text-foreground">
-                          Preparing {signupSteps[Math.min(signupStep + 1, signupSteps.length - 1)].title}
-                        </p>
-                        <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                          We&apos;re getting the next setup step ready so the merchant onboarding feels
-                          smooth from start to finish.
-                        </p>
-                      </motion.div>
-                    ) : signupStep === 0 ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label htmlFor="fullName" className="text-sm font-medium text-foreground">
-                            Full name
-                          </label>
-                          <Input
-                            id="fullName"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Amina Yusuf"
-                            required
-                          />
-                        </div>
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium text-slate-700">
+                        Email Address
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@business.com"
+                        required
+                        className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-base transition-colors focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
 
-                        <div className="space-y-2">
-                          <label htmlFor="email" className="text-sm font-medium text-foreground">
-                            Email
-                          </label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="owner@brand.co.ke"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="password" className="text-sm font-medium text-foreground">
-                            Password
-                          </label>
-                          <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Create a secure password"
-                            required
-                          />
-                          <p className="text-xs leading-5 text-muted-foreground">
-                            Use at least 8 characters with uppercase, lowercase, a number, and a
-                            special character before continuing.
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="storeName" className="text-sm font-medium text-foreground">
-                            Store name
-                          </label>
-                          <Input
-                            id="storeName"
-                            value={storeName}
-                            onChange={(e) => setStoreName(e.target.value)}
-                            placeholder="Amina Beauty House"
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Your store URL:{' '}
-                            <span className="font-semibold text-foreground">
-                              {subdomain}.fezzy.shop
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {!isStepTransitioning && signupStep === 1 && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="walletProvider"
-                            className="text-sm font-medium text-foreground"
-                          >
-                            Wallet provider
-                          </label>
-                          <Input
-                            id="walletProvider"
-                            value={walletProvider}
-                            onChange={(e) => setWalletProvider(e.target.value)}
-                            placeholder="M-Pesa"
-                          />
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="walletAccountName"
-                              className="text-sm font-medium text-foreground"
-                            >
-                              Wallet account name
-                            </label>
-                            <Input
-                              id="walletAccountName"
-                              value={walletAccountName}
-                              onChange={(e) => setWalletAccountName(e.target.value)}
-                              placeholder="Amina Yusuf"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="walletAccountNumber"
-                              className="text-sm font-medium text-foreground"
-                            >
-                              Wallet account number
-                            </label>
-                            <Input
-                              id="walletAccountNumber"
-                              value={walletAccountNumber}
-                              onChange={(e) => setWalletAccountNumber(e.target.value)}
-                              placeholder="0712345678"
-                            />
-                          </div>
-                        </div>
-
-                        <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
-                          This wallet is saved as the merchant payout account so withdrawals and
-                          settlement setup can start immediately.
-                        </p>
-                      </div>
-                    )}
-
-                    {!isStepTransitioning && signupStep === 2 && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="businessAddress"
-                            className="text-sm font-medium text-foreground"
-                          >
-                            Store location
-                          </label>
-                          <Input
-                            id="businessAddress"
-                            value={businessAddress}
-                            onChange={(e) => setBusinessAddress(e.target.value)}
-                            placeholder="Kimathi House, Nairobi CBD"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="country" className="text-sm font-medium text-foreground">
-                            Country
-                          </label>
-                          <Input
-                            id="country"
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                            placeholder="Kenya"
-                          />
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="shippingZones"
-                              className="text-sm font-medium text-foreground"
-                            >
-                              Shipping coverage
-                            </label>
-                            <Input
-                              id="shippingZones"
-                              value={shippingZones}
-                              onChange={(e) => setShippingZones(e.target.value)}
-                              placeholder="Nairobi, Kiambu, Nakuru"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="shippingTimeline"
-                              className="text-sm font-medium text-foreground"
-                            >
-                              Delivery timeline
-                            </label>
-                            <Input
-                              id="shippingTimeline"
-                              value={shippingTimeline}
-                              onChange={(e) => setShippingTimeline(e.target.value)}
-                              placeholder="Same day in Nairobi, 1-2 days outside town"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="shippingNotes"
-                            className="text-sm font-medium text-foreground"
-                          >
-                            Shipping notes
-                          </label>
-                          <textarea
-                            id="shippingNotes"
-                            className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={shippingNotes}
-                            onChange={(e) => setShippingNotes(e.target.value)}
-                            placeholder="Pickup, dispatch times, and customer delivery guidance."
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="locationLandmark"
-                            className="text-sm font-medium text-foreground"
-                          >
-                            Landmark
-                          </label>
-                          <Input
-                            id="locationLandmark"
-                            value={locationLandmark}
-                            onChange={(e) => setLocationLandmark(e.target.value)}
-                            placeholder="Next to Nation Centre"
-                          />
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-3">
-                          <FilePicker
-                            label="Store logo"
-                            helper={logoFile?.name ?? 'Upload a brand mark'}
-                            onChange={setLogoFile}
-                          />
-                          <FilePicker
-                            label="Storefront photo"
-                            helper={storefrontPhoto?.name ?? 'Upload the exterior'}
-                            onChange={setStorefrontPhoto}
-                          />
-                          <FilePicker
-                            label="Inside store"
-                            helper={interiorPhoto?.name ?? 'Upload an interior shot'}
-                            onChange={setInteriorPhoto}
-                          />
-                        </div>
-
-                      </div>
-                    )}
-
-                    {!isStepTransitioning && signupStep === 3 && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label htmlFor="phone" className="text-sm font-medium text-foreground">
-                            Phone number
-                          </label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="+254 712 345 678"
-                            required={verificationMethod === 'phone'}
-                          />
-                        </div>
-
-                        <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              Verification channel
-                            </p>
-                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              Pick the preferred verification path for the merchant owner account.
-                            </p>
-                          </div>
-
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            <VerificationOption
-                              title="Email verification"
-                              description="Send the verification link to the merchant email address."
-                              active={verificationMethod === 'email'}
-                              onClick={() => setVerificationMethod('email')}
-                            />
-                            <VerificationOption
-                              title="Phone OTP"
-                              description="Use the saved phone number when phone OTP is enabled in Supabase."
-                              active={verificationMethod === 'phone'}
-                              onClick={() => setVerificationMethod('phone')}
-                            />
-                          </div>
-
-                          {verificationMethod === 'phone' && (
-                            <p className="text-xs leading-5 text-muted-foreground">
-                              Phone OTP needs Supabase phone auth to be enabled in your project.
-                              Until then, the number is saved as the preferred verification channel
-                              while email confirmation remains available.
-                            </p>
-                          )}
-                        </div>
-
-                        <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-                          <input
-                            type="checkbox"
-                            className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            checked={agreedToTerms}
-                            onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          />
-                          <span>
-                            I agree to the{' '}
-                            <button
-                              type="button"
-                              className="font-semibold text-primary hover:underline"
-                              onClick={() => navigate('terms')}
-                            >
-                              Terms & Conditions
-                            </button>{' '}
-                            and{' '}
-                            <button
-                              type="button"
-                              className="font-semibold text-primary hover:underline"
-                              onClick={() => navigate('privacy')}
-                            >
-                              Privacy Policy
-                            </button>{' '}
-                            so this store can be provisioned.
-                          </span>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="password" className="text-sm font-medium text-slate-700">
+                          Password
                         </label>
+                        <button type="button" className="text-sm font-medium text-primary hover:underline">
+                          Forgot password?
+                        </button>
                       </div>
-                    )}
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-base transition-colors focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
 
                     <AnimatePresence>
                       {success && (
                         <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
                         >
-                          {success}
+                          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+                            {success}
+                          </div>
                         </motion.div>
                       )}
                       {error && (
                         <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
                         >
-                          {error}
+                          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+                            {error}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    <div className="flex items-center justify-between gap-3">
-                      <Button
+                    <Button type="submit" className="h-12 w-full rounded-xl text-base font-semibold shadow-xl shadow-primary/20 transition-all hover:shadow-primary/30" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
+                          Authenticating...
+                        </>
+                      ) : (
+                        'Sign in'
+                      )}
+                    </Button>
+                  </form>
+
+                  <div className="relative flex items-center py-2">
+                    <div className="flex-grow border-t border-slate-200"></div>
+                    <span className="shrink-0 px-4 text-sm text-slate-400">New to Fezzy?</span>
+                    <div className="flex-grow border-t border-slate-200"></div>
+                  </div>
+
+                  <p className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsLogin(false);
+                        setSignupStep(0);
+                        setError('');
+                      }}
+                      className="text-base font-semibold text-primary transition-colors hover:text-orange-700 hover:underline"
+                    >
+                      Create a merchant account
+                    </button>
+                  </p>
+                </motion.div>
+              ) : (
+                /* --- SIGNUP FLOW --- */
+                <motion.div
+                  key="signup-flow"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-8"
+                >
+                  <div>
+                    <div className="mb-6 flex justify-between gap-2">
+                      {signupSteps.map((step) => (
+                      <div key={step.id} className="group relative flex-1">
+                          <div className={`h-1.5 w-full rounded-full transition-colors duration-300 ${
+                            signupStep >= step.id ? 'bg-primary' : 'bg-slate-100'
+                          }`} />
+                          {signupStep === step.id && (
+                            <motion.span
+                              layoutId="activeStep"
+                              className="absolute -top-1 left-0 right-0 h-3.5 w-full rounded-full border-2 border-white bg-primary shadow-sm"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-950">
+                      {signupSteps[signupStep].title}
+                    </h2>
+                    <p className="mt-2 text-slate-500">
+                      Step {signupStep + 1} of {signupSteps.length}: {signupSteps[signupStep].description}
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="min-h-[300px]">
+                      <AnimatePresence mode="wait">
+                        {isStepTransitioning ? (
+                          <motion.div
+                            key="loading-step"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="flex h-[320px] flex-col items-center justify-center space-y-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50/50"
+                          >
+                            <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+                            <p className="font-medium text-slate-600">Preparing next step...</p>
+                          </motion.div>
+                        ) : signupStep === 0 ? (
+                          /* Step 0: Account */
+                          <motion.div
+                            key="step-0"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-5"
+                          >
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <label htmlFor="fullName" className="text-sm font-medium text-slate-700">Full Name</label>
+                                <Input
+                                  id="fullName"
+                                  value={fullName}
+                                  onChange={(e) => setFullName(e.target.value)}
+                                  placeholder="John Doe"
+                                  required
+                                  className="h-11 rounded-xl bg-slate-50"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</label>
+                                <Input
+                                  id="email"
+                                  type="email"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  placeholder="john@example.com"
+                                  required
+                                  className="h-11 rounded-xl bg-slate-50"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label htmlFor="password" className="text-sm font-medium text-slate-700">Password</label>
+                              <Input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Create a strong password"
+                                required
+                                className="h-11 rounded-xl bg-slate-50"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <label htmlFor="storeName" className="text-sm font-medium text-slate-700">Store Name</label>
+                              <div className="relative">
+                                <Input
+                                  id="storeName"
+                                  value={storeName}
+                                  onChange={(e) => setStoreName(e.target.value)}
+                                  placeholder="My Awesome Store"
+                                  required
+                                  className="h-11 rounded-xl bg-slate-50 pl-10"
+                                />
+                                <Store className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                              </div>
+                              {storeName && (
+                                <p className="text-sm text-slate-500">
+                                  Store URL: <span className="font-semibold text-primary">{subdomain}.fezzy.shop</span>
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        ) : signupStep === 1 ? (
+                          /* Step 1: Wallet */
+                          <motion.div
+                            key="step-1"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-5"
+                          >
+                            <div className="space-y-2">
+                              <label htmlFor="walletProvider" className="text-sm font-medium text-slate-700">Wallet Provider</label>
+                              <Input
+                                id="walletProvider"
+                                value={walletProvider}
+                                onChange={(e) => setWalletProvider(e.target.value)}
+                                placeholder="M-Pesa"
+                                className="h-11 rounded-xl bg-slate-50"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <label htmlFor="walletAccountName" className="text-sm font-medium text-slate-700">Account Name</label>
+                              <Input
+                                id="walletAccountName"
+                                value={walletAccountName}
+                                onChange={(e) => setWalletAccountName(e.target.value)}
+                                placeholder="John Doe"
+                                className="h-11 rounded-xl bg-slate-50"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <label htmlFor="walletAccountNumber" className="text-sm font-medium text-slate-700">Account Number</label>
+                              <Input
+                                id="walletAccountNumber"
+                                value={walletAccountNumber}
+                                onChange={(e) => setWalletAccountNumber(e.target.value)}
+                                placeholder="0712345678"
+                                className="h-11 rounded-xl bg-slate-50"
+                              />
+                            </div>
+                            <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
+                              <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500" />
+                              <p className="text-sm leading-relaxed text-indigo-900">
+                                This wallet is securely saved as your primary payout destination for fast, automated withdrawals.
+                              </p>
+                            </div>
+                          </motion.div>
+                        ) : signupStep === 2 ? (
+                          /* Step 2: Shipping & Details */
+                          <motion.div
+                            key="step-2"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-5"
+                          >
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                <label htmlFor="country" className="text-sm font-medium text-slate-700">Country</label>
+                                <Input
+                                  id="country"
+                                  value={country}
+                                  onChange={(e) => setCountry(e.target.value)}
+                                  placeholder="Kenya"
+                                  className="h-11 rounded-xl bg-slate-50"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label htmlFor="shippingZones" className="text-sm font-medium text-slate-700">Shipping Coverage</label>
+                                <Input
+                                  id="shippingZones"
+                                  value={shippingZones}
+                                  onChange={(e) => setShippingZones(e.target.value)}
+                                  placeholder="Nairobi, Kiambu..."
+                                  className="h-11 rounded-xl bg-slate-50"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label htmlFor="shippingTimeline" className="text-sm font-medium text-slate-700">Expected Delivery Timeline</label>
+                                <Input
+                                  id="shippingTimeline"
+                                  value={shippingTimeline}
+                                  onChange={(e) => setShippingTimeline(e.target.value)}
+                                  placeholder="Same day within Nairobi, 2 days elsewhere"
+                                  className="h-11 rounded-xl bg-slate-50"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="shippingNotes" className="text-sm font-medium text-slate-700">Shipping Notes (Optional)</label>
+                                <textarea
+                                  id="shippingNotes"
+                                  value={shippingNotes}
+                                  onChange={(e) => setShippingNotes(e.target.value)}
+                                  placeholder="Pickup times, dispatch times, etc."
+                                  className="flex min-h-[80px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base transition-colors focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+
+                            <div className="grid gap-5 sm:grid-cols-2">
+                              <div className="space-y-2">
+                                  <label htmlFor="businessAddress" className="text-sm font-medium text-slate-700">Main Store Address</label>
+                                  <Input
+                                    id="businessAddress"
+                                    value={businessAddress}
+                                    onChange={(e) => setBusinessAddress(e.target.value)}
+                                    placeholder="CBD, Next to Nation Centre"
+                                    className="h-11 rounded-xl bg-slate-50"
+                                  />
+                              </div>
+                              <div className="space-y-2">
+                                  <label htmlFor="locationLandmark" className="text-sm font-medium text-slate-700">Landmark</label>
+                                  <Input
+                                    id="locationLandmark"
+                                    value={locationLandmark}
+                                    onChange={(e) => setLocationLandmark(e.target.value)}
+                                    placeholder="Near the big tree"
+                                    className="h-11 rounded-xl bg-slate-50"
+                                  />
+                              </div>
+                            </div>
+
+                             <div className="grid gap-3 sm:grid-cols-3 pt-2">
+                              <FilePicker
+                                label="Store Logo"
+                                helper={logoFile?.name ?? 'Upload mark'}
+                                onChange={setLogoFile}
+                              />
+                              <FilePicker
+                                label="Storefront"
+                                helper={storefrontPhoto?.name ?? 'Exterior shot'}
+                                onChange={setStorefrontPhoto}
+                              />
+                              <FilePicker
+                                label="Inside Store"
+                                helper={interiorPhoto?.name ?? 'Interior shot'}
+                                onChange={setInteriorPhoto}
+                              />
+                            </div>
+                          </motion.div>
+                        ) : (
+                          /* Step 3: Verification */
+                          <motion.div
+                            key="step-3"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-6"
+                          >
+                            <div className="space-y-2">
+                              <label htmlFor="phone" className="text-sm font-medium text-slate-700">Phone Number</label>
+                              <Input
+                                id="phone"
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="+254 712 345 678"
+                                required={verificationMethod === 'phone'}
+                                className="h-11 rounded-xl bg-slate-50"
+                              />
+                            </div>
+
+                            <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/50 p-5">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900">Verification Channel</p>
+                                <p className="text-sm text-slate-500">How should we verify your identity?</p>
+                              </div>
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <VerificationOption
+                                  title="Email Link"
+                                  description="Verify via email"
+                                  active={verificationMethod === 'email'}
+                                  onClick={() => setVerificationMethod('email')}
+                                />
+                                <VerificationOption
+                                  title="SMS OTP"
+                                  description="Verify via text"
+                                  active={verificationMethod === 'phone'}
+                                  onClick={() => setVerificationMethod('phone')}
+                                />
+                              </div>
+                            </div>
+
+                            <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                              <input
+                                type="checkbox"
+                                className="mt-0.5 h-5 w-5 rounded border-slate-300 text-primary transition focus:ring-primary"
+                                checked={agreedToTerms}
+                                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                              />
+                              <span className="text-sm text-slate-600">
+                                I agree to the <button type="button" onClick={() => navigate('terms')} className="font-semibold text-primary hover:underline">Terms & Conditions</button> and <button type="button" onClick={() => navigate('privacy')} className="font-semibold text-primary hover:underline">Privacy Policy</button>.
+                              </span>
+                            </label>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <AnimatePresence>
+                      {error && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+                            {error}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                       <Button
                         type="button"
-                        variant="outline"
-                        disabled={isStepTransitioning}
+                        variant="ghost"
+                        className="text-slate-600 hover:bg-slate-100"
+                        disabled={isStepTransitioning || isSubmitting}
                         onClick={() =>
                           signupStep === 0
                             ? setIsLogin(true)
                             : setSignupStep((current) => Math.max(current - 1, 0) as SignupStep)
                         }
                       >
-                        {signupStep === 0 ? 'Back to login' : 'Previous step'}
+                        {signupStep === 0 ? 'Log in instead' : 'Back'}
                       </Button>
 
                       {signupStep < signupSteps.length - 1 ? (
-                        <Button type="button" onClick={() => void handleNextSignupStep()} disabled={isStepTransitioning}>
-                          {isStepTransitioning ? (
-                            <>
-                              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                              Loading next step...
-                            </>
-                          ) : (
-                            'Continue'
-                          )}
+                        <Button 
+                          type="button" 
+                          onClick={() => void handleNextSignupStep()} 
+                          disabled={isStepTransitioning}
+                          className="h-11 px-8 rounded-xl font-semibold shadow-lg shadow-primary/20"
+                        >
+                          Continue
                         </Button>
                       ) : (
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button 
+                          type="submit" 
+                          disabled={isSubmitting || isStepTransitioning}
+                          className="h-11 px-8 rounded-xl font-semibold shadow-lg shadow-primary/20"
+                        >
                           {isSubmitting ? (
                             <>
                               <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                              Creating account...
+                              Creating...
                             </>
                           ) : (
-                            <>
-                              <KeyRound className="mr-2 h-4 w-4" />
-                              Create account
-                            </>
+                            'Create Store'
                           )}
                         </Button>
                       )}
                     </div>
                   </form>
-                </CardContent>
-
-                <CardFooter className="border-t border-border/60 pt-6">
-                  <p className="w-full text-center text-sm text-muted-foreground">
-                    Already have an account?{' '}
-                    <button
-                      type="button"
-                      className="font-semibold text-primary hover:underline"
-                      onClick={() => {
-                        setIsLogin(true);
-                        setError('');
-                      }}
-                    >
-                      Log in
-                    </button>
-                  </p>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function FeatureCard({
-  icon,
-  title,
-  body
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <motion.div
-      variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0 } }}
-      className="rounded-3xl border border-white/10 bg-white/5 p-4"
-    >
-      <div className="mb-4">{icon}</div>
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
-    </motion.div>
-  );
-}
+
 
 function VerificationOption({
   title,
